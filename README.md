@@ -1,41 +1,74 @@
-# tinywebapps.in: hub plus four tools on one domain (GitHub Pages)
+# Tiny Web Apps
+
+**Free, private tools that run in your browser. No sign-up, no uploads, no price tag.**
+
+Live at **https://tinywebapps.in**
+
+Tiny Web Apps is one small website that hosts four tools, plus a hub page that links them together. Every tool does its work on the visitor's own device, so photos, recordings, videos and resumes are never sent to a server.
+
+| Tool | Address | What it does |
+|---|---|---|
+| **Clearcut** | [/clearcut/](https://tinywebapps.in/clearcut/) | Removes the background from a photo and exports a transparent PNG. A precision brush lets you refine the edges. |
+| **Verbatim** | [/verbatim/](https://tinywebapps.in/verbatim/) | Turns speech into text. Add an audio or video file, or record with the microphone, and copy the transcript. |
+| **Stillreel** | [/stillreel/](https://tinywebapps.in/stillreel/) | Builds a video from photos and words: text scenes, a 3D depth effect on photos, music, and export to MP4 or WebM. |
+| **The Tailorly** | [/tailorly/](https://tinywebapps.in/tailorly/) | Tailors a resume to a job post. Shows a match score, the missing keywords and stronger bullet points beside your text. |
+
+## How each tool works
+
+**Clearcut.** A segmentation model (IS-Net, from the DIS project) runs in the browser through WebAssembly. The model is about 47 MB. It loads when the page opens and the browser keeps it afterwards.
+
+**Verbatim.** OpenAI's Whisper (Tiny or Base) runs in the browser through WebAssembly. Base is about 80 MB and Tiny about 45 MB. The model is downloaded once and then cached. Accuracy is best on clear speech in widely spoken languages, and weaker on noisy audio, names and less common languages.
+
+**Stillreel.** A depth model (MiDaS, about 34 MB) gives photos a 3D camera move. If the model cannot load, the editor still works with a flat camera move. Exporting needs a browser with WebCodecs: Chrome, Edge, Safari 16.4 or newer, or Firefox 130 or newer on a computer.
+
+**The Tailorly.** Matching, scoring and rewriting use plain text analysis written for this site. There are no model files. Resumes can be pasted or dropped in as PDF, Word (.docx) or text; scanned PDFs (images of text) cannot be read. An optional "AI boost" lets a visitor add their own Anthropic API key, and the request then goes straight from their browser to Anthropic. It is off until a key is added. The Tailorly checks wording and keywords only. It cannot judge how good someone's experience is, and every suggestion should be checked for accuracy before it is used.
+
+## Privacy
+
+- Files are processed on the visitor's device. The site has no server code and no database.
+- There are no accounts, no tracking scripts and no ads.
+- The one exception is The Tailorly's optional AI boost, which sends the text to Anthropic only when the visitor adds a key and presses an AI button.
+- Each tool stores its cached model and settings in the visitor's own browser.
+
+## About this repository
+
+Everything here is plain static files. There is no build step.
 
 ```
-/             the hub (index.html)
-/clearcut/    Clearcut
-/verbatim/    Verbatim
-/stillreel/   Stillreel
-/tailorly/    The Tailorly
+index.html      the hub page
+clearcut/       Clearcut
+verbatim/       Verbatim
+stillreel/      Stillreel
+tailorly/       The Tailorly
+CNAME           the custom domain (tinywebapps.in)
+.nojekyll       tells GitHub Pages to publish the files as they are
 ```
 
-Plain static files, no build step. About 211 MB in 196 files; the biggest file is 2 MiB.
-`CNAME` holds the domain name and `.nojekyll` tells GitHub to publish the files as they are. Keep both.
+The site is published with GitHub Pages from the `main` branch. Keep `CNAME` and `.nojekyll`. To update the site, change the files, commit, and push. The new version is live within a couple of minutes.
 
-## 1. Put the files on GitHub (GitHub Desktop, no command line)
-1. Make a free account at github.com, then install **GitHub Desktop** and sign in.
-2. **File, New repository.** Name: `tinywebapps`. Local path: any folder (for example Documents). Leave the other boxes as they are and create it.
-3. Open that new repository folder on your computer and copy **everything that is inside `tinywebapps-site`** into it (so `index.html`, `clearcut/`, `CNAME` ... sit directly in the repository folder). Make sure the hidden file `.nojekyll` came along (on Windows: View, Show hidden items).
-4. Back in GitHub Desktop you will see the files listed. Type a summary such as `First upload`, press **Commit to main**, then **Publish repository**. Untick "Keep this code private" (GitHub Pages on the free plan needs a public repository). Wait for the upload to finish (211 MB).
+Some files are named with a short fingerprint (for example `model/m01-207643fe3d5d.dat`). Each page asks for exactly those files and checks them, so an old and a new upload are never mixed up. Please don't rename files inside the `model/`, `vendor/`, `music/` or `media/` folders.
 
-## 2. Turn on Pages
-On github.com open the repository, then **Settings, Pages**. Under **Build and deployment** choose **Deploy from a branch**, branch `main`, folder `/ (root)`, and save. Under **Custom domain** enter `tinywebapps.in` and save (it may already be filled in from the `CNAME` file). The first publish takes a few minutes.
+### Running it on your own computer
 
-## 3. Point GoDaddy at GitHub
-In GoDaddy open the domain, then **DNS**.
-* If you changed the nameservers to Cloudflare, set them back first: **Nameservers, Change, GoDaddy Nameservers (default)**.
-* Delete the **Parked** A record and any old `www` record.
-* Add four **A** records, Name `@`, TTL default: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
-* Add one **CNAME** record: Name `www`, Value `YOUR-GITHUB-USERNAME.github.io` (no `https://`, no path).
-* Keep GoDaddy's own NS and SOA records as they are.
-GitHub's current address list is in its documentation under "Managing a custom domain for your GitHub Pages site". Check these four against it.
+The pages load their files with `fetch`, so they must be served over HTTP. Opening `index.html` by double-click will not work for most tools.
 
-## 4. Finish
-Back in **Settings, Pages**, wait for "DNS check successful" (minutes to a few hours), then tick **Enforce HTTPS** (the certificate can take up to a day). Then run `python3 check_site.py https://tinywebapps.in` (in the first zip).
+```
+python3 -m http.server 8000
+```
 
-## Updating later
-Change files in the repository folder, then in GitHub Desktop commit and press **Push origin**. The site updates in a minute or two.
+Then open http://localhost:8000 in a browser.
 
-## Notes
-* GitHub Pages limits: site up to 1 GB, soft limit of 100 GB traffic a month, no commercial or software-as-a-service sites.
-* The old standalone addresses can stay up or be switched off. Visitors' saved settings start fresh on the new domain.
-* To change the hub's tool addresses, edit the `TOOLS` block at the top of the script in `index.html`.
+## Credits and licences
+
+The tools use these open-source parts. The full licence texts are in each tool's page footer, under "Open-source licences".
+
+- IS-Net (DIS), Apache License 2.0
+- Whisper by OpenAI, MIT; ONNX versions from sherpa-onnx, Apache-2.0
+- MiDaS depth model, MIT
+- ONNX Runtime Web, MIT
+- PDF.js, Apache-2.0, and fflate, MIT (The Tailorly)
+- Fraunces, Instrument Sans and JetBrains Mono typefaces, SIL Open Font License
+
+Images, recordings, videos and resumes that visitors process remain theirs, and no claim is made over them.
+
+&copy; 2026 [@ashish.narayann](https://www.instagram.com/ashish.narayann/). All rights reserved, except as the open-source licences above allow.
