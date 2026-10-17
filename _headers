@@ -1,0 +1,53 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/clearcut/
+  Cache-Control: no-cache
+/clearcut/index.html
+  Cache-Control: no-cache
+/clearcut/model/*
+  Cache-Control: public, max-age=31536000, immutable
+/clearcut/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+/clearcut/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/clearcut/brand/*
+  Cache-Control: public, max-age=86400
+/verbatim/
+  Cache-Control: no-cache
+/verbatim/index.html
+  Cache-Control: no-cache
+/verbatim/model/*
+  Cache-Control: public, max-age=31536000, immutable
+/verbatim/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+/verbatim/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/verbatim/brand/*
+  Cache-Control: public, max-age=86400
+/stillreel/
+  Cache-Control: no-cache
+/stillreel/index.html
+  Cache-Control: no-cache
+/stillreel/model/*
+  Cache-Control: public, max-age=31536000, immutable
+/stillreel/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+/stillreel/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/stillreel/music/*
+  Cache-Control: public, max-age=31536000, immutable
+/stillreel/media/*
+  Cache-Control: public, max-age=31536000, immutable
+/stillreel/brand/*
+  Cache-Control: public, max-age=86400
+/tailorly/
+  Cache-Control: no-cache
+/tailorly/index.html
+  Cache-Control: no-cache
+/tailorly/brand/*
+  Cache-Control: public, max-age=86400
