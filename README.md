@@ -71,4 +71,4 @@ The tools use these open-source parts. The full licence texts are in each tool's
 
 Images, recordings, videos and resumes that visitors process remain theirs, and no claim is made over them.
 
-&copy; 2026 [@ashish.narayann](https://www.instagram.com/ashish.narayann/). All rights reserved, except as the open-source licences above allow.
+&copy; 2026 [Ashish Narayan](https://www.instagram.com/ashish.narayann/). All rights reserved, except as the open-source licences above allow.
