@@ -159,6 +159,12 @@ h1 .ln:nth-child(2)>span{animation-delay:.12s}
 
 /* footer */
 footer{border-top:1px solid var(--line);padding:24px clamp(16px,4vw,44px) 28px;width:100%;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;color:var(--dim);font-size:13px;max-width:1240px;margin:0 auto}
+.keep{flex:1 1 100%;display:flex;align-items:center;gap:22px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:rgba(236,232,223,.03);margin-bottom:8px}
+.keep img{width:112px;height:112px;border-radius:10px;background:#fff;padding:6px;flex:none}
+.keep h2{font:400 clamp(22px,3vw,30px)/1.1 var(--serif);color:var(--ink);letter-spacing:-.01em;margin:0 0 8px}
+.keep p{color:var(--mut);font-size:14px;line-height:1.55;max-width:56ch;margin:0}
+.keep small{display:block;margin-top:8px;font:500 11px var(--mono);color:var(--dim);letter-spacing:.04em}
+@media(max-width:560px){.keep{flex-direction:column;align-items:flex-start}}
 footer a:hover{color:var(--ink)}
 .copy a{color:var(--mut);text-decoration:underline;text-decoration-color:rgba(var(--acc-rgb),.6);text-underline-offset:3px}
 .copy a:hover{color:var(--acc)}
@@ -210,6 +216,14 @@ dialog li[aria-selected=true] button{background:rgba(236,232,223,.09)}
 <main id="app" tabindex="-1"></main>
 
 <footer>
+  <section class="keep" aria-labelledby="keepT">
+    <img src="support-upi.png" width="112" height="112" alt="UPI QR code to support tinywebapps.in" loading="lazy">
+    <div>
+      <h2 id="keepT">Keep tinywebapps.in alive</h2>
+      <p>These tools are free, with no ads and no sign-up. If one saved you time, a small tip towards the domain and upkeep helps keep them that way. Totally optional.</p>
+      <small>SCAN WITH ANY UPI APP</small>
+    </div>
+  </section>
   <span><a href="https://tinywebapps.in/">tinywebapps.in</a> · Free tools. No sign-up. Your files stay on your device.</span>
   <span class="copy">&copy; <span id="yr">2026</span> <a href="https://www.instagram.com/ashish.narayann/" target="_blank" rel="noopener noreferrer">@ashish.narayann</a>. All rights reserved.</span>
   <span><a href="#/clearcut">Clearcut</a> · <a href="#/verbatim">Verbatim</a> · <a href="#/stillreel">Stillreel</a> · <a href="#/tailorly">The Tailorly</a></span>
