@@ -4,7 +4,7 @@
 
 Live at **https://tinywebapps.in**
 
-Tiny Web Apps is one small website that hosts four tools, plus a hub page that links them together. Every tool does its work on the visitor's own device, so photos, recordings, videos and resumes are never sent to a server.
+Tiny Web Apps is one small website that hosts five tools, plus a hub page that links them together. Every tool does its work on the visitor's own device, so photos, recordings, videos and resumes are never sent to a server.
 
 | Tool | Address | What it does |
 |---|---|---|
@@ -12,6 +12,7 @@ Tiny Web Apps is one small website that hosts four tools, plus a hub page that l
 | **Verbatim** | [/verbatim/](https://tinywebapps.in/verbatim/) | Turns speech into text. Add an audio or video file, or record with the microphone, and copy the transcript. |
 | **Stillreel** | [/stillreel/](https://tinywebapps.in/stillreel/) | Builds a video from photos and words: text scenes, a 3D depth effect on photos, music, and export to MP4 or WebM. |
 | **The Tailorly** | [/tailorly/](https://tinywebapps.in/tailorly/) | Tailors a resume to a job post. Shows a match score, the missing keywords and stronger bullet points beside your text. |
+| **Polish** | [/enhance/](https://tinywebapps.in/enhance/) | Drop a photo and it is enhanced automatically: light, colour, noise and detail are fixed with no prompts. Then pick one of 12 filters, compare before and after, and download as JPG or PNG. |
 
 ## How each tool works
 
@@ -23,10 +24,13 @@ Tiny Web Apps is one small website that hosts four tools, plus a hub page that l
 
 **The Tailorly.** Matching, scoring and rewriting use plain text analysis written for this site. There are no model files. Resumes can be pasted or dropped in as PDF, Word (.docx) or text; scanned PDFs (images of text) cannot be read. An optional "AI boost" lets a visitor add their own Anthropic API key, and the request then goes straight from their browser to Anthropic. It is off until a key is added. The Tailorly checks wording and keywords only. It cannot judge how good someone's experience is, and every suggestion should be checked for accuracy before it is used.
 
+**Polish.** Real-ESRGAN's small general model (`realesr-general-x4v3`, about 4.7 MB, converted to ONNX) rebuilds detail in small photos and removes noise, running in the browser through ONNX Runtime Web. Polish first measures each photo (brightness, colour cast, contrast, noise, sharpness) and then applies only the fixes it needs: automatic levels and exposure, colour-cast correction, smart saturation, noise reduction and sharpening. Small photos get the AI upscale (2 to 4 times larger); larger photos get the light, colour and sharpness fixes without upscaling. On a processor the AI step handles photos up to about 320,000 pixels; browsers with WebGPU (recent Chrome or Edge) use the graphics card, check it against a known answer first, and handle photos up to about 2.2 million pixels. The model chip at the top right shows the engine state, and "Details" opens a report with a file check. AI upscaling can invent plausible detail that was not in the original, so it should not be used for evidence or identification.
+
 ## Privacy
 
 - Files are processed on the visitor's device. The site has no server code and no database.
 - There are no accounts, no tracking scripts and no ads.
+- Polish processes photos entirely on the device, like the other tools.
 - The one exception is The Tailorly's optional AI boost, which sends the text to Anthropic only when the visitor adds a key and presses an AI button.
 - Each tool stores its cached model and settings in the visitor's own browser.
 
@@ -40,6 +44,7 @@ clearcut/       Clearcut
 verbatim/       Verbatim
 stillreel/      Stillreel
 tailorly/       The Tailorly
+enhance/        Polish
 CNAME           the custom domain (tinywebapps.in)
 .nojekyll       tells GitHub Pages to publish the files as they are
 ```
@@ -63,11 +68,12 @@ Then open http://localhost:8000 in a browser.
 The tools use these open-source parts. The full licence texts are in each tool's page footer, under "Open-source licences".
 
 - IS-Net (DIS), Apache License 2.0
+- Real-ESRGAN (realesr-general-x4v3), BSD 3-Clause
 - Whisper by OpenAI, MIT; ONNX versions from sherpa-onnx, Apache-2.0
 - MiDaS depth model, MIT
 - ONNX Runtime Web, MIT
 - PDF.js, Apache-2.0, and fflate, MIT (The Tailorly)
-- Fraunces, Instrument Sans and JetBrains Mono typefaces, SIL Open Font License
+- Fraunces, Instrument Sans and JetBrains Mono typefaces, SIL Open Font License (Polish and The Tailorly)
 
 Images, recordings, videos and resumes that visitors process remain theirs, and no claim is made over them.
 
