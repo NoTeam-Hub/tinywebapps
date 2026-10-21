@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiny Web Apps: free, private tools that run in your browser</title>
-<meta name="description" content="Tiny Web Apps (tinywebapps.in): Clearcut, Verbatim, Stillreel, The Tailorly and Polish: five free tools for images, speech, video, resumes and photos. They run in your browser, with no sign-up and nothing uploaded.">
+<meta name="description" content="Tiny Web Apps (tinywebapps.in): Upright, Clearcut, Verbatim, Stillreel, The Tailorly and Polish: six free tools for reels, images, speech, video, resumes and photos. They run in your browser, with no sign-up and nothing uploaded.">
 <meta name="theme-color" content="#07080A">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tiny Web Apps">
@@ -61,7 +61,7 @@ main{width:min(1240px,100%);margin:0 auto;padding:0 clamp(16px,4vw,44px) 56px;ou
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 
 /* hero */
-.hero{padding:clamp(56px,11vh,130px) 0 clamp(36px,6vh,70px)}
+.hero{padding:clamp(16px,3.5vh,40px) 0 clamp(36px,6vh,70px)}
 .kick{font:500 12px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--acc);display:flex;align-items:center;gap:12px;transition:color .5s}
 .kick::before{content:"";width:28px;height:1px;background:currentColor}
 h1{font:400 clamp(44px,8.4vw,116px)/.96 var(--serif);letter-spacing:-.025em;margin:22px 0 26px;font-variation-settings:"opsz" 144}
@@ -89,7 +89,7 @@ h1 .ln:nth-child(2)>span{animation-delay:.12s}
 .stack{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:clamp(40px,7vh,80px)}
 .card{--c:var(--acc-rgb);position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:320px;padding:26px;border-radius:26px;background:var(--glass);border:1px solid var(--line);overflow:hidden;isolation:isolate;
   transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s var(--ease),border-color .3s;will-change:transform}
-.card:nth-child(1){grid-column:span 7}.card:nth-child(2){grid-column:span 5}.card:nth-child(3){grid-column:span 5}.card:nth-child(4){grid-column:span 7}.card:nth-child(5){grid-column:span 12}
+.card:nth-child(1){grid-column:span 7}.card:nth-child(2){grid-column:span 5}.card:nth-child(3){grid-column:span 5}.card:nth-child(4){grid-column:span 7}.card:nth-child(5){grid-column:span 6}.card:nth-child(6){grid-column:span 6}
 .card::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),rgba(var(--c),.22),transparent 60%);opacity:0;transition:opacity .3s}
 .card:hover{border-color:rgba(var(--c),.55)}
 .card:hover::before{opacity:1}
@@ -262,7 +262,7 @@ dialog li[aria-selected=true] button{background:rgba(236,232,223,.09)}
     <span class="snote" id="shNote" role="status" aria-live="polite"></span>
   </span>
   <span class="copy">&copy; <span id="yr">2026</span> <a href="https://www.instagram.com/ashish.narayann/" target="_blank" rel="noopener noreferrer">Ashish Narayan</a>. All rights reserved.</span>
-  <span><a href="#/clearcut">Clearcut</a> · <a href="#/verbatim">Verbatim</a> · <a href="#/stillreel">Stillreel</a> · <a href="#/tailorly">The Tailorly</a> · <a href="#/enhance">Polish</a></span>
+  <span><a href="#/upright">Upright</a> · <a href="#/clearcut">Clearcut</a> · <a href="#/verbatim">Verbatim</a> · <a href="#/stillreel">Stillreel</a> · <a href="#/tailorly">The Tailorly</a> · <a href="#/enhance">Polish</a></span>
 </footer>
 <dialog class="thx" id="thanks" aria-labelledby="thxT">
   <div class="heart" aria-hidden="true">♥</div>
@@ -287,6 +287,14 @@ dialog li[aria-selected=true] button{background:rgba(236,232,223,.09)}
    Each tool lives in its own folder on this domain: /clearcut/, /verbatim/, /stillreel/, /tailorly/.
    Use a full https:// address here instead if you ever host one elsewhere. Leave "" to show "not linked yet". */
 const TOOLS = [
+  { id:"upright", name:"Upright", url:"upright/", rgb:"255,92,168", hex:"#FF5CA8",
+    kick:"Reels", tag:"Drop your clips. Make it a reel.",
+    desc:"Cut, caption and score vertical videos on your device. Mix clips and photos, add text, emoji and music, snap cuts to the beat, then export for Reels, Shorts and TikTok.",
+    chips:["Vertical video","Beat sync","MP4 / WebM"],
+    facts:[["Does","Vertical video editing"],["Input","Videos, photos, music"],["Output","MP4 or WebM"],["Cost","Free, nothing uploaded"]],
+    steps:["Drop in your clips and photos.","Trim, caption and add music.","Export your reel."],
+    note:"Export records in real time, so a 30-second reel takes 30 seconds. Keep the tab open. Chrome and Edge work best.",
+    mark:'<rect x="9" y="3.5" width="14" height="25" rx="3.5"/><path d="M14 12.5v7l5.5-3.5z" fill="currentColor"/>' },
   { id:"clearcut", name:"Clearcut", url:"clearcut/", rgb:"232,84,60", hex:"#E8543C",
     kick:"Images", tag:"Lift any subject out of its background.",
     desc:"Remove the background from a photo and keep every hair and edge. The cut-out is made on your device, then refined with a precision brush.",
@@ -357,9 +365,9 @@ function home(){
   const words = ["Image","Speech","Video","Resume","Private","Free","No sign-up","In your browser"];
   const tick = words.concat(words).map(w => `<span>${w}</span>`).join("");
   return `<section class="view hero">
-    <p class="kick">Five tools · one tiny home</p>
+    <p class="kick">Six tools · one tiny home</p>
     <h1><span class="ln"><span>Tiny tools.</span></span><span class="ln"><span><em>Nothing</em> leaves</span></span><span class="ln"><span>your device.</span></span></h1>
-    <p class="lede">Cut out a background, transcribe a recording, turn photos into a film, tailor a resume. Each one runs in your browser. No account, no uploads, no price tag.</p>
+    <p class="lede">Cut a vertical reel, remove a background, transcribe a recording, turn photos into a film, tailor a resume, polish a photo. Each one runs in your browser. No account, no uploads, no price tag.</p>
     <div class="cta"><a class="btn pri" href="#stack">Pick a tool ${ARROW}</a><button class="btn sec" type="button" data-pal>Quick switcher <kbd style="font:500 11px var(--mono);opacity:.7">Ctrl K</kbd></button></div>
     <div class="tick" aria-hidden="true"><div>${tick}</div></div>
   </section>
@@ -549,7 +557,7 @@ render();
 
 /* share */
 (function(){
-  const url="https://tinywebapps.in/", text="Tiny Web Apps: free, private tools that run in your browser. Remove backgrounds, transcribe speech, make videos, tailor resumes, enhance photos. No sign-up.";
+  const url="https://tinywebapps.in/", text="Tiny Web Apps: free, private tools that run in your browser. Remove backgrounds, transcribe speech, make videos and reels, tailor resumes, enhance photos. No sign-up.";
   document.getElementById("shWa").href="https://wa.me/?text="+encodeURIComponent(text+" "+url);
   document.getElementById("shX").href="https://x.com/intent/post?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(url);
   const note=document.getElementById("shNote"); let t; const flash=m=>{note.textContent=m;clearTimeout(t);t=setTimeout(()=>{note.textContent=""},4500)};
