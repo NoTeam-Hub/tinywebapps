@@ -1,0 +1,1545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>if(!/\/$|\.html?$/.test(location.pathname))location.replace(location.pathname+"/"+location.search+location.hash);</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verbatim: speech to text in your browser</title>
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#F1EDE4">
+
+<meta name="description" content="Turn audio and video into text with Whisper, running privately in your browser. Free, no sign-up, nothing is uploaded.">
+<style>
+@font-face { font-family: "Archivo"; font-style: normal; font-weight: 500 900; font-stretch: 62% 125%; font-display: swap; src: url(fonts/archivo.woff2) format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400 600; font-display: swap; src: url(fonts/public-sans.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/plex-mono-400.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url(fonts/plex-mono-500.woff2) format("woff2"); }
+@font-face { font-family: "Newsreader"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(fonts/newsreader.woff2) format("woff2"); }
+@font-face { font-family: "Newsreader"; font-style: italic; font-weight: 200 800; font-display: swap; src: url(fonts/newsreader-italic.woff2) format("woff2"); }
+:root {
+  --bg: #F1EDE4;
+  --panel: #FAF7F0;
+  --ink: #1B1A17;
+  --muted: #6B675D;
+  --line: #D9D3C5;
+  --acc: #2B4BDB;
+  --acc-ink: #FFFFFF;
+  --acc-soft: rgba(43, 75, 219, 0.09);
+  --rec: #D4301F;
+  --ok: #1F7A4D;
+  --wave: #B9B2A1;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Newsreader", "Noto Serif Devanagari", "Noto Serif", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121316; --panel: #1A1B20; --ink: #ECE9E1; --muted: #9A978D; --line: #2C2D33;
+    --acc: #8EA2FF; --acc-ink: #0E1233; --acc-soft: rgba(142, 162, 255, 0.12);
+    --rec: #FF5A47; --ok: #5CCB92; --wave: #4A4B53; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, select, input { font: inherit; color: inherit; }
+a { color: inherit; }
+.page { max-width: 1240px; margin: 0 auto; padding: 22px 24px 48px; display: flex; flex-direction: column; gap: 32px; }
+[hidden] { display: none !important; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; font-family: var(--display); font-weight: 800; font-stretch: 112%; letter-spacing: 0.04em; font-size: 20px; text-transform: uppercase; }
+.brand svg { color: var(--acc); }
+.modelbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); padding: 5px 12px; font-family: var(--mono); font-size: 12px; border-radius: 2px; color: var(--muted); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--wave); }
+.chip[data-state="loading"] i { background: var(--acc); animation: blink 1s infinite; }
+.chip[data-state="ready"] i { background: var(--ok); }
+.chip[data-state="error"] i { background: var(--rec); }
+.chip[data-state="ready"], .chip[data-state="loading"] { color: var(--ink); }
+@keyframes blink { 50% { opacity: 0.25; } }
+.mini { background: transparent; border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 12px; padding: 5px 11px; border-radius: 2px; cursor: pointer; }
+.mini:hover:not(:disabled) { border-color: var(--ink); }
+.mini:disabled { opacity: 0.45; cursor: not-allowed; }
+.mini.strong { background: var(--acc); border-color: var(--acc); color: var(--acc-ink); }
+.mini.on { background: var(--acc-soft); border-color: var(--acc); }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+/* hero */
+.hero { display: flex; flex-direction: column; gap: 14px; max-width: 820px; }
+.kicker { margin: 0; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--acc); }
+h1 { margin: 0; font-family: var(--display); font-weight: 800; font-stretch: 100%; font-size: clamp(38px, 6.2vw, 72px); line-height: 1.02; letter-spacing: -0.02em; }
+h1 em { font-family: var(--serif); font-style: italic; font-weight: 500; letter-spacing: -0.01em; color: var(--acc); }
+.lede { margin: 0; font-family: var(--serif); font-size: clamp(19px, 2.2vw, 23px); line-height: 1.5; color: var(--muted); max-width: 62ch; }
+
+/* report */
+.report { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.report-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.report-head div { display: flex; flex-wrap: wrap; gap: 8px; }
+.report textarea { width: 100%; min-height: 220px; resize: vertical; font-family: var(--mono); font-size: 12px; line-height: 1.5; background: var(--bg); border: 1px solid var(--line); border-radius: 2px; padding: 10px; white-space: pre; overflow: auto; }
+.hint { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* workspace */
+.work { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 20px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.label { margin: 0 0 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+/* drop zone */
+.drop { position: relative; border: 1.5px dashed var(--line); border-radius: 2px; padding: 26px 18px 22px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; background: transparent; transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--acc); background: var(--acc-soft); }
+.bars { display: flex; align-items: center; gap: 3px; height: 54px; }
+.bars span { display: block; width: 4px; border-radius: 2px; background: var(--wave); height: var(--h); transition: background .15s; }
+.drop.over .bars span { background: var(--acc); }
+@media (prefers-reduced-motion: no-preference) { .bars span { animation: bar 2.4s ease-in-out infinite; animation-delay: var(--d); } }
+@keyframes bar { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.45); } }
+.drop h2 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 700; }
+.drop p { margin: 0; font-size: 14px; color: var(--muted); }
+.btnrow { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 18px; font-weight: 600; font-size: 15px; border-radius: 2px; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.primary { background: var(--acc); border-color: var(--acc); color: var(--acc-ink); width: 100%; padding: 14px 18px; font-size: 16px; }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.08); background: var(--acc); color: var(--acc-ink); }
+.btn.rec .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rec); }
+.btn.rec.live { border-color: var(--rec); color: var(--rec); }
+.btn.rec.live .dot { animation: blink 1s infinite; }
+.btn.stop { width: 100%; padding: 14px 18px; border-color: var(--rec); color: var(--rec); }
+.btn.stop:hover:not(:disabled) { background: var(--rec); color: #fff; }
+
+/* loaded file */
+.file { display: flex; flex-direction: column; gap: 12px; }
+.file-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.file-name { font-weight: 600; overflow-wrap: anywhere; }
+.file-meta { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.wave { position: relative; height: 84px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; }
+.wave canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.player { display: flex; align-items: center; gap: 12px; }
+.play { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--ink); background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+.play:hover { background: var(--ink); color: var(--bg); }
+.time { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.player .mini { margin-left: auto; }
+
+/* options */
+.opts { display: flex; flex-direction: column; gap: 18px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 10px 12px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button b { font-weight: 600; font-size: 14px; }
+.seg button small { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--acc-soft); box-shadow: inset 0 -2px 0 var(--acc); }
+.seg button:hover:not([aria-pressed="true"]) { background: var(--bg); }
+select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+.status { margin: 0; min-height: 1.5em; font-size: 14px; color: var(--muted); }
+.status.err { color: var(--rec); }
+
+/* transcript */
+.paper { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; min-height: 520px; display: flex; flex-direction: column; min-width: 0; }
+.paper-head { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.paper-head h2 { margin: 0; font-family: var(--display); font-size: 18px; font-weight: 700; }
+.paper-meta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12px; color: var(--muted); cursor: pointer; margin-right: 6px; }
+.toggle input { accent-color: var(--acc); }
+.prog { padding: 14px 20px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.prog-bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.prog-bar i { display: block; height: 100%; width: 0; background: var(--acc); transition: width .25s; }
+.prog-text { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.segs { padding: 10px 20px 28px; display: flex; flex-direction: column; }
+.seg-row { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 14px; padding: 12px 0 12px 10px; border-left: 3px solid transparent; margin-left: -10px; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.nots .seg-row { grid-template-columns: minmax(0, 1fr); }
+.nots .seg-time { display: none; }
+.seg-row.active { border-left-color: var(--acc); background: var(--acc-soft); }
+.seg-time { align-self: start; margin-top: 5px; background: none; border: 0; padding: 0; font-family: var(--mono); font-size: 12px; color: var(--acc); cursor: pointer; text-align: left; }
+.seg-time:hover { text-decoration: underline; }
+.seg-text { font-family: var(--serif); font-size: 20px; line-height: 1.6; outline: none; overflow-wrap: anywhere; white-space: pre-wrap; }
+.seg-text:focus { box-shadow: 0 1px 0 var(--acc); }
+.empty { padding: 34px 20px 40px; display: flex; flex-direction: column; gap: 18px; color: var(--muted); }
+.empty p { margin: 0; font-family: var(--serif); font-size: 20px; max-width: 46ch; }
+.ghost { display: flex; flex-direction: column; gap: 16px; opacity: 0.55; }
+.ghost div { display: grid; grid-template-columns: 74px 1fr; gap: 14px; align-items: center; }
+.ghost span { height: 9px; background: var(--line); border-radius: 5px; }
+.ghost span:first-child { width: 44px; }
+.note { padding: 0 20px 18px; font-size: 13px; color: var(--muted); }
+
+/* footer */
+.legal { border-top: 1px solid var(--line); padding-top: 22px; display: flex; flex-direction: column; gap: 18px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.legal-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 32px; }
+.legal h2 { margin: 0 0 6px; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+.legal p { margin: 0; }
+.legal summary { cursor: pointer; font-family: var(--mono); font-size: 12px; color: var(--ink); width: fit-content; }
+.licenses-body { margin-top: 14px; display: flex; flex-direction: column; gap: 18px; }
+.licenses-body h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.licenses-body .src { margin: 0 0 6px; font-family: var(--mono); font-size: 11px; overflow-wrap: anywhere; }
+.licenses-body pre { margin: 0; max-height: 240px; overflow: auto; background: var(--bg); border: 1px solid var(--line); padding: 10px; font-family: var(--mono); font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); }
+
+@media (max-width: 980px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .legal-grid { grid-template-columns: minmax(0, 1fr); }
+  .page { padding: 16px 16px 48px; }
+}
+@media (max-width: 520px) {
+  .seg-row { grid-template-columns: 58px minmax(0, 1fr); gap: 10px; }
+  .seg-text { font-size: 18px; }
+  .paper-head, .prog, .segs { padding-left: 14px; padding-right: 14px; }
+  .card { padding: 16px; }
+}
+:root { --rub: var(--acc); --on-rub: var(--acc-ink); }
+/* credit line */
+.legal .credit { max-width: none; margin: 0; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.credit a { color: var(--ink); text-underline-offset: 3px; }
+.credit a:hover { color: var(--rub); }
+.legal .copyright { max-width: 90ch; margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.legal .visits { max-width: none; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.legal .visits[hidden] { display: none; }
+.legal .visits b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.legal-grid p, .legal-text p { text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
+.legal-base { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 32px; align-items: start; }
+.legal-text { grid-column: span 2; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.legal .legal-text p { max-width: none; }
+.share { grid-column: 3; justify-self: end; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.share-row { display: flex; align-items: center; gap: 10px; }
+.share-label { margin-right: 4px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+.share-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; text-decoration: none; }
+.share-btn:hover { border-color: var(--rub); color: var(--rub); }
+.share-btn:focus-visible { outline: 2px solid var(--rub); outline-offset: 2px; }
+.share-note { min-height: 1.4em; font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; }
+@media (max-width: 880px) { .legal-base { grid-template-columns: minmax(0, 1fr); } .legal-text, .share { grid-column: 1; } .share { justify-self: start; align-items: flex-start; } .share-note { text-align: left; } }
+
+
+.lhs{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}.backlink{font:400 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:inherit;opacity:.62;text-decoration:none;white-space:nowrap}.backlink:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}.backlink:focus-visible{outline:2px solid currentColor;outline-offset:3px;opacity:1}
+</style>
+<link rel="canonical" href="https://tinywebapps.in/verbatim/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tiny Web Apps">
+<meta property="og:title" content="Verbatim: speech to text in your browser">
+<meta property="og:description" content="Turn audio and video into text with Whisper, running privately in your browser. Free, no sign-up, nothing is uploaded.">
+<meta property="og:url" content="https://tinywebapps.in/verbatim/">
+<meta property="og:image" content="https://tinywebapps.in/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Verbatim: speech to text in your browser">
+<meta name="twitter:description" content="Turn audio and video into text with Whisper, running privately in your browser. Free, no sign-up, nothing is uploaded.">
+<meta name="twitter:image" content="https://tinywebapps.in/og-image.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Verbatim", "url": "https://tinywebapps.in/verbatim/", "description": "Turn audio and video into text with Whisper, running privately in your browser. Free, no sign-up, nothing is uploaded.", "applicationCategory": "Speech to text", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "isPartOf": {"@type": "WebSite", "name": "Tiny Web Apps", "url": "https://tinywebapps.in/"}}</script>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div class="lhs"><a class="backlink" href="../">&larr; tinywebapps.in</a><div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 13v6M10.5 8v16M16 4v24M21.5 9v14M27 13v6"/></svg>
+      <span>Verbatim</span>
+    </div></div>
+    <div class="modelbar">
+      <span class="chip" id="model" data-state="idle" role="status"><i></i><span id="modelText">Model not loaded</span></span>
+      <button type="button" class="mini strong" id="modelRetry" hidden>Retry</button>
+      <button type="button" class="mini" id="modelDetails">Details</button>
+    </div>
+  </header>
+
+  <section class="report" id="report" hidden aria-label="Model report">
+    <div class="report-head">
+      <strong>Model report</strong>
+      <div>
+        <button type="button" class="mini" id="reportCheck">Check files</button>
+        <button type="button" class="mini" id="reportCopy">Copy</button>
+        <button type="button" class="mini" id="reportClose">Close</button>
+      </div>
+    </div>
+    <textarea id="reportText" readonly rows="14" spellcheck="false" aria-label="Model report text"></textarea>
+    <p class="hint">The report lists your browser, the files this page needs and any error. It contains no audio or text from your recordings.</p>
+  </section>
+
+  <section class="hero">
+    <p class="kicker">Whisper, running on your device</p>
+    <h1>Speech to text, <em>without the upload.</em></h1>
+    <p class="lede">Drop in a recording or speak into your microphone. An AI model transcribes it right here in your browser, so your audio never leaves your device. There is no account and no limit on how many recordings you transcribe.</p>
+  </section>
+
+  <main class="work">
+    <section class="card" aria-label="Audio and settings">
+      <div id="dropWrap">
+        <div class="drop" id="drop">
+          <div class="bars" id="bars" aria-hidden="true"></div>
+          <h2>Drop audio or video</h2>
+          <p>MP3, WAV, M4A, OGG, MP4, WEBM and more, up to 90 minutes.</p>
+          <div class="btnrow">
+            <button type="button" class="btn" id="pick">Choose file</button>
+            <button type="button" class="btn rec" id="recBtn"><span class="dot"></span><span id="recText">Record</span></button>
+          </div>
+          <input type="file" id="file" accept="audio/*,video/*" hidden>
+        </div>
+      </div>
+
+      <div class="file" id="fileBox" hidden>
+        <div class="file-head"><span class="file-name" id="fileName"></span><span class="file-meta" id="fileMeta"></span></div>
+        <div class="wave" id="wave" title="Click to jump to a point"><canvas id="waveCv"></canvas></div>
+        <div class="player">
+          <button type="button" class="play" id="play" aria-label="Play">
+            <svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+            <svg id="pauseIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+          </button>
+          <span class="time" id="time">0:00 / 0:00</span>
+          <button type="button" class="mini" id="removeFile">Remove</button>
+        </div>
+      </div>
+
+      <div class="opts">
+        <div>
+          <p class="label">Model</p>
+          <div class="seg" id="modelSeg" role="group" aria-label="Model">
+            <button type="button" data-k="tiny" aria-pressed="false"><b>Tiny</b><small>45 MB · fastest</small></button>
+            <button type="button" data-k="base" aria-pressed="true"><b>Base</b><small>80 MB · more accurate</small></button>
+          </div>
+          <p class="hint" style="margin-top:8px">Downloaded once, then kept on your device.</p>
+        </div>
+        <div>
+          <p class="label"><label for="lang">Language</label></p>
+          <select id="lang"><option value="-1" selected>Detect automatically</option></select>
+        </div>
+        <div>
+          <p class="label">Output</p>
+          <div class="seg" id="taskSeg" role="group" aria-label="Output">
+            <button type="button" data-k="transcribe" aria-pressed="true"><b>Transcribe</b><small>in the spoken language</small></button>
+            <button type="button" data-k="translate" aria-pressed="false"><b>Translate</b><small>into English</small></button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" class="btn primary" id="go" disabled>Transcribe</button>
+        <button type="button" class="btn stop" id="stop" hidden>Stop</button>
+        <p class="status" id="status" role="status" aria-live="polite" style="margin-top:10px"></p>
+      </div>
+    </section>
+
+    <section class="paper" aria-label="Transcript">
+      <div class="paper-head">
+        <div>
+          <h2>Transcript</h2>
+          <div class="paper-meta" id="paperMeta"></div>
+        </div>
+        <div class="acts">
+          <label class="toggle"><input type="checkbox" id="tsToggle" checked> Timestamps</label>
+          <button type="button" class="mini" id="copy" disabled>Copy</button>
+          <button type="button" class="mini" id="dlTxt" disabled>.txt</button>
+          <button type="button" class="mini" id="dlSrt" disabled>.srt</button>
+          <button type="button" class="mini" id="dlVtt" disabled>.vtt</button>
+          <button type="button" class="mini" id="dlJson" disabled>.json</button>
+        </div>
+      </div>
+      <div class="prog" id="prog" hidden>
+        <div id="loadRow" hidden>
+          <div class="prog-bar"><i id="loadBar"></i></div>
+          <div class="prog-text"><span id="loadText"></span></div>
+        </div>
+        <div class="prog-bar"><i id="progBar"></i></div>
+        <div class="prog-text"><span id="progText"></span></div>
+      </div>
+      <div class="empty" id="empty">
+        <p>Your transcript will appear here, line by line, with a timestamp you can click to hear it again.</p>
+        <div class="ghost" aria-hidden="true"><div><span></span><span style="width:92%"></span></div><div><span></span><span style="width:78%"></span></div><div><span></span><span style="width:86%"></span></div><div><span></span><span style="width:54%"></span></div></div>
+      </div>
+      <div class="segs" id="segs"></div>
+      <p class="note">Whisper can make mistakes, especially with names, numbers and less common languages. Click any line to correct it before you copy or download.</p>
+    </section>
+  </main>
+
+  <footer class="legal">
+    <div class="legal-grid">
+      <section>
+        <h2>Privacy</h2>
+        <p>Your audio is decoded and transcribed in your browser. It is not uploaded to or stored by this site, and the transcript exists only on this page until you copy or download it. The page sets no cookies and runs no ads. The model files are saved in your browser cache so the page starts faster next time. The microphone is used only while you record. The server that hosts the page may keep standard access logs, such as your IP address.</p>
+      </section>
+      <section>
+        <h2>Terms of use</h2>
+        <p>You are responsible for having the right to record, transcribe and use every recording you process, and for following any laws about recording other people. Transcripts are made automatically, can contain mistakes, and are provided as is, without warranty of any kind. Check them against the audio before you rely on them for anything important, including legal, medical or financial decisions.</p>
+      </section>
+      <section>
+        <h2>Credits</h2>
+        <p>Speech recognition uses OpenAI&rsquo;s Whisper (MIT) in the small ONNX versions published by the sherpa-onnx project (Apache-2.0), further compressed for this site and run with ONNX Runtime Web (MIT). Typefaces are Archivo, Newsreader, Public Sans and IBM Plex Mono (SIL Open Font License). Verbatim is an independent project and is not affiliated with or endorsed by OpenAI or any other transcription service.</p>
+      </section>
+    </div>
+    <div class="legal-base">
+      <div class="legal-text">
+        <p class="credit">AI did the heavy lifting. <a href="https://www.instagram.com/ashish.narayann/" target="_blank" rel="noopener noreferrer">Ashish Narayan</a> turned the lights on.</p>
+        <p class="copyright">&copy; 2026 <a href="https://www.instagram.com/ashish.narayann/" target="_blank" rel="noopener noreferrer">Ashish Narayan</a>. All rights reserved in the original design, text and code of this site. Third-party software, the speech models and the typefaces remain the property of their respective authors and are used under their own licences, reproduced below under &ldquo;Open-source licences&rdquo;. Recordings and transcripts you make remain yours, and no claim is made over them. No part of this site may be copied or redistributed without permission, except as those licences allow.</p>
+      </div>
+      <div class="share">
+        <div class="share-row" role="group" aria-label="Share Clearcut">
+          <span class="share-label">Share</span>
+          <a class="share-btn" id="shWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" title="Share on WhatsApp"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+          <a class="share-btn" id="shX" href="https://x.com/intent/post" target="_blank" rel="noopener noreferrer" aria-label="Share on X (Twitter)" title="Share on X (Twitter)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+          <button type="button" class="share-btn" id="shIg" aria-label="Share on Instagram" title="Share on Instagram"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="currentColor"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg></button>
+        </div>
+        <span class="share-note" id="shNote" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+    <details class="licenses">
+      <summary>Open-source licences</summary>
+      <div class="licenses-body">
+<div><h3>Whisper by OpenAI: MIT License</h3><p class="src">https://github.com/openai/whisper</p><pre>MIT License
+
+Copyright (c) 2022 OpenAI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>sherpa-onnx, which publishes the ONNX versions of Whisper: Apache License 2.0</h3><p class="src">https://github.com/k2-fsa/sherpa-onnx</p><pre>Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      &quot;License&quot; shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      &quot;Licensor&quot; shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      &quot;Legal Entity&quot; shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      &quot;control&quot; means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      &quot;You&quot; (or &quot;Your&quot;) shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      &quot;Source&quot; form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      &quot;Object&quot; form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      &quot;Work&quot; shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      &quot;Derivative Works&quot; shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      &quot;Contribution&quot; shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, &quot;submitted&quot;
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as &quot;Not a Contribution.&quot;
+
+      &quot;Contributor&quot; shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a &quot;NOTICE&quot; text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an &quot;AS IS&quot; BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets &quot;[]&quot;
+      replaced with your own identifying information. (Don&#x27;t include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same &quot;printed page&quot; as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.</pre></div>
+<div><h3>ONNX Runtime Web: MIT License</h3><p class="src">https://github.com/microsoft/onnxruntime</p><pre>MIT License
+
+Copyright (c) Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>fflate: MIT License</h3><p class="src">https://github.com/101arrowz/fflate</p><pre>MIT License
+
+Copyright (c) 2026 Arjun Barrett
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>Archivo: SIL Open Font License 1.1</h3><p class="src">https://github.com/Omnibus-Type/Archivo</p><pre>Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo) Archivo-Italic[wdth,wght].ttf: Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>Newsreader: SIL Open Font License 1.1</h3><p class="src">https://github.com/productiontype/Newsreader</p><pre>Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader) Newsreader-Italic[opsz,wght].ttf: Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>Public Sans: SIL Open Font License 1.1</h3><p class="src">https://github.com/uswds/public-sans</p><pre>Copyright 2015 The Public Sans Project Authors (https://github.com/uswds/public-sans) PublicSans-Italic[wght].ttf: Copyright 2015 The Public Sans Project Authors (https://github.com/uswds/public-sans)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>IBM Plex Mono: SIL Open Font License 1.1</h3><p class="src">https://github.com/IBM/plex</p><pre>Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-ThinItalic.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-ExtraLight.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-ExtraLightItalic.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-Light.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-LightItalic.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-Regular.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-Italic.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-Medium.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-MediumItalic.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-SemiBold.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-SemiBoldItalic.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-Bold.ttf: Copyright 2017 IBM Corp. All rights reserved. IBMPlexMono-BoldItalic.ttf: Copyright 2017 IBM Corp. All rights reserved.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+      </div>
+    </details>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var SITE = location.href;
+  var web = /^https?:$/.test(location.protocol);
+  var url = web ? location.origin + location.pathname : SITE;
+  var text = 'Verbatim: turn speech into text, free, right in your browser. Nothing is uploaded.';
+  var wa = document.getElementById('shWa'), x = document.getElementById('shX'), ig = document.getElementById('shIg'), note = document.getElementById('shNote');
+  wa.href = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url);
+  x.href = 'https://x.com/intent/post?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
+  var timer;
+  function say(m) { note.textContent = m; clearTimeout(timer); timer = setTimeout(function () { note.textContent = ''; }, 4500); }
+  function copy() {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(url);
+    return new Promise(function (ok, no) {
+      var t = document.createElement('textarea'); t.value = url; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy') ? ok() : no(); } catch (e) { no(e); } document.body.removeChild(t);
+    });
+  }
+  ig.addEventListener('click', function () {
+    // Instagram has no web share link. On phones the share sheet lists Instagram; elsewhere copy the link to paste there.
+    if (navigator.share) {
+      navigator.share({ title: 'Verbatim', text: text, url: url }).catch(function () {});
+      return;
+    }
+    copy().then(function () { say('Link copied. Paste it into Instagram.'); }, function () { say('Copy this link: ' + url); });
+  });
+})();
+</script>
+
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const MF = {"v":"1","vendor":{"wasm":{"parts":[{"p":"vendor/e1.dat","size":2097152,"sha":"3e5282ed6bdd8f5a09fdb2ffc0834d02148898cbb693c5353cbf5c0d5780fb14"},{"p":"vendor/e2.dat","size":860133,"sha":"cae5b826b591c0d6859850b049b3e511e1158c1476f6039adecaac36b1a0810b"}],"size":11246032,"sha":"207d02be4591c156b0a98f024f3d58005b5b04c92274d759fb390338c63559ea"},"mjs":{"parts":[{"p":"vendor/r1.dat","size":24618,"sha":"745eb7c0ce6f18a6aa521971b2877babc7ffb27eecb58ab3bc6e5ef4692672e8"}],"size":24618,"sha":"745eb7c0ce6f18a6aa521971b2877babc7ffb27eecb58ab3bc6e5ef4692672e8"},"ort":{"parts":[{"p":"vendor/o1.dat","size":49026,"sha":"e66568724f8848e57cc2a56e4bea3a5b86ce3ff81b2da11eac8ed7ab02b27bd4"}],"size":49026,"sha":"e66568724f8848e57cc2a56e4bea3a5b86ce3ff81b2da11eac8ed7ab02b27bd4"},"fflate":{"parts":[{"p":"vendor/f1.dat","size":33044,"sha":"462ef8041fc970e3615a20a9dd2b2e3047a073b2da729ef4f02b634bba8b7b83"}],"size":33044,"sha":"462ef8041fc970e3615a20a9dd2b2e3047a073b2da729ef4f02b634bba8b7b83"}},"models":{"tiny":{"enc":{"parts":[{"p":"model/tiny-e1.dat","size":2097152,"sha":"29ace062b6e20f380d9580ec8953eb3c4b5f9688046a16e7f4306c1d71b36c88"},{"p":"model/tiny-e2.dat","size":2097152,"sha":"9ab34ac2328786fd4a5f2d49f4f9e8ab2e139850535f34ad83bea05c1b145e96"},{"p":"model/tiny-e3.dat","size":2097152,"sha":"9a08e5e8f162155c8b09d7b3a72c83611e9c8babd31511e584055939c32a0206"},{"p":"model/tiny-e4.dat","size":2097152,"sha":"4cec4485ea99aebd257d045fccff9eef36d540710b88549588211cb0906b3a61"},{"p":"model/tiny-e5.dat","size":2097152,"sha":"868e6a668237a47ce3b1dfe69db3befa6bd624428edb6068490e6621be9f81a5"},{"p":"model/tiny-e6.dat","size":2097152,"sha":"6df70dce160210c998396175264975e72fdbe878960d5b9147fea72f26608adf"},{"p":"model/tiny-e7.dat","size":354860,"sha":"26e58dbce852d965480b18bfc661fd8b94299b9a6c0cf3488f976e3dca269ba1"}],"size":12937772,"sha":"d24fb083ae3b1041fc24e97971d60e280c9342201fbb67b0ab428a8b4a51a434"},"dec":{"parts":[{"p":"model/tiny-d1.dat","size":2097152,"sha":"07dbc915686fcc59d0445600a842c6750c4e701b13c3e5da04d8f2703434e56d"},{"p":"model/tiny-d2.dat","size":2097152,"sha":"c79eb80187b43de9d7c23fe83d288957d1a6d8197c5353ee38267f8d628bf1d0"},{"p":"model/tiny-d3.dat","size":2097152,"sha":"65cc49aedfc42b03120f725ad9b86f9352ac18af3811ad93a533774b85c1f58b"},{"p":"model/tiny-d4.dat","size":2097152,"sha":"db4ba48bbcd15e2776e4250aa2b652b60f4d266c03d6a120429e4fdd257589bd"},{"p":"model/tiny-d5.dat","size":2097152,"sha":"f227e2872774fb4c03206d521dca5cf1e8c17dc45aaca12c216a649719d6f9b5"},{"p":"model/tiny-d6.dat","size":2097152,"sha":"6a142452166914605ef33a7d97d8036667f1c01c9d6ba6d8896c6af204c6b250"},{"p":"model/tiny-d7.dat","size":2097152,"sha":"de16db096e9ed8833d44f1d82fa958f72e472015055a0f51b27365b84f04abc3"},{"p":"model/tiny-d8.dat","size":2097152,"sha":"270021da95b86a9268b6d4405a2d75030a804d9a708d3d37b603a82b38bee219"},{"p":"model/tiny-d9.dat","size":2097152,"sha":"7c77b21092c36d8269f6f90f6430e4f5cd2b1dc6e1bbc6263e86678784bdb3e9"},{"p":"model/tiny-d10.dat","size":2097152,"sha":"f153de4d287911c0a93a43de9b5cdc995ffdbb0a371af41643fb773a6da52221"},{"p":"model/tiny-d11.dat","size":2097152,"sha":"f53367aef8a838cf3be7fda044c78122429268c9bbb6e0192dcd35e391ecf1bf"},{"p":"model/tiny-d12.dat","size":2097152,"sha":"59e610da40e5c457417f32c705eb1176cb6a5ca5456bf568ca8b35a76cee285d"},{"p":"model/tiny-d13.dat","size":2097152,"sha":"1028993ece761a686c6f889386c5d548fde92b856032956d730055e1c3e34350"},{"p":"model/tiny-d14.dat","size":2097152,"sha":"e23408fe75cf6e467cbd89798fec4743aad70636df780e76aa1a4a587a4b1c7b"},{"p":"model/tiny-d15.dat","size":954544,"sha":"bb3eb4bdbb45f0d8c6f81bc1d485c2ae5513201d03bf925dddf2c42ae2a3265f"}],"size":30314672,"sha":"e51d4a4ee2eb37f9bd21fcf532b2eb59c26b1b8b296a688299bc0bbf9107899d"}},"base":{"enc":{"parts":[{"p":"model/base-e1.dat","size":2097152,"sha":"ff5a900163d6f6c323d8a91d9dd108cc083024b82432940155be71464465ea7f"},{"p":"model/base-e2.dat","size":2097152,"sha":"71410f65f201c3a438111b3a07bf881b754b6d7ff2c9508d08cfcf5e3d9eafd7"},{"p":"model/base-e3.dat","size":2097152,"sha":"15e7bb7b687780d1680940d3b9c2f71c061bf7c4a4e2aa1c458d2d0270a8d6ee"},{"p":"model/base-e4.dat","size":2097152,"sha":"d97d8fff16b8342192c836339b8c963c4dfe5dc14ccd69c565549901fa9ff5f7"},{"p":"model/base-e5.dat","size":2097152,"sha":"b7aeb443603313c20c5aea1175688ea7c6970956510b2c7c964cab01228a2b33"},{"p":"model/base-e6.dat","size":2097152,"sha":"7f88c4f02384ef922a54f066fe19c8c06807e23c304f1e02493716a8ff001f67"},{"p":"model/base-e7.dat","size":2097152,"sha":"abee8b88e833daaf23e7836f655b5d9a353081b50d94782d0b6682c1553e77fc"},{"p":"model/base-e8.dat","size":2097152,"sha":"fc4dd7d7d19d9438bb6b16948a9fd0efdade2d40965ff4e589b02dcbcdef6bca"},{"p":"model/base-e9.dat","size":2097152,"sha":"d5f8e90ef60346c8952c5e3d47e2faaacd653068581c63156e41d0426bdca091"},{"p":"model/base-e10.dat","size":2097152,"sha":"b9b29a5ab9d89bfba7069be0d1c93942e1885cacd3c2463ccf99b80d57bce573"},{"p":"model/base-e11.dat","size":2097152,"sha":"a6b02fafe4b547cad1f01b57d9ad55b63890d7588a65a6fd00a5813daacd45b1"},{"p":"model/base-e12.dat","size":2097152,"sha":"cf499fd380fc92048017c21d573169839eb549d07b30541420b6d5404814f088"},{"p":"model/base-e13.dat","size":2097152,"sha":"1bb9308385feed88bc57bbd2761124931313e34409503b084c9940a4f88612ea"},{"p":"model/base-e14.dat","size":1857558,"sha":"266219ede999fd542e29e709d093ceefd8528646bc97bdc227122c8881e992b1"}],"size":29120534,"sha":"0b8fb1304b6109976038efff5ace81720e00386f3ff6b54ee8c75291ca0a1e11"},"dec":{"parts":[{"p":"model/base-d1.dat","size":2097152,"sha":"10b5845426fc8676e7c29217572faf8e11b49e68499bc80a418dac32a14ff9b4"},{"p":"model/base-d2.dat","size":2097152,"sha":"17d64cdf7d75bb0e9dc6582362ad3342e1ffeb9176a2853b84c171e22c8946b9"},{"p":"model/base-d3.dat","size":2097152,"sha":"4381b7cc50e05b8816b6f771bf669e779562ae1c1db531480c53ce8f4e8dab3c"},{"p":"model/base-d4.dat","size":2097152,"sha":"50b4aac85c575c0014676f7c6afa02737d77174d9d62c14471e05600c5367114"},{"p":"model/base-d5.dat","size":2097152,"sha":"40bb525f548bbca9601e1721d9fc82c4dd1d80cdceec43577cec59c69d249e5e"},{"p":"model/base-d6.dat","size":2097152,"sha":"f5a5956b3d7d31a7d6a047dcf1729093ced62adfc244ffd913822a818f44d2d0"},{"p":"model/base-d7.dat","size":2097152,"sha":"2173d812ed8687f6833ffe0825c577867570788229d1d553bdbdd65222adbdc3"},{"p":"model/base-d8.dat","size":2097152,"sha":"7db41e6bd335233de074ecdbe8c6f27144f3f4debae42361f2354386d0864799"},{"p":"model/base-d9.dat","size":2097152,"sha":"51c9b41f9dad397af0b6043c19e4712794f648febeab57c0756b4735dfcf6194"},{"p":"model/base-d10.dat","size":2097152,"sha":"63d4f29afdcc1836c370a824b571aceefd15f8a787775e1756b68f278b0d0a16"},{"p":"model/base-d11.dat","size":2097152,"sha":"f0526318b4d0ff7902f8dd0793bd4238fbacf396b2e491d2cfe5e1e3f4ad020e"},{"p":"model/base-d12.dat","size":2097152,"sha":"c9fcc2ba9ce56e47aa5162c18e341533ae6ed0cdb98504e20d86b35a93aee88e"},{"p":"model/base-d13.dat","size":2097152,"sha":"72232a646ca4dbe01049a60277f2ba176caace7f8cfa0fb59c8b3ec8b4c1bbdb"},{"p":"model/base-d14.dat","size":2097152,"sha":"313eff8a8a2bca64ac5f402d6891849aef3957673e3ed3c51fb934a2e8eda695"},{"p":"model/base-d15.dat","size":2097152,"sha":"6038fa4ecf66e575b8bd3c6e5d9be2584cf010f6aca230f7bb309949c66d05c1"},{"p":"model/base-d16.dat","size":2097152,"sha":"bdb9ad20dbcbfd95af0985ce5d679dbfd03e76d59786c29b988aadfe02376b3f"},{"p":"model/base-d17.dat","size":2097152,"sha":"9a8242b6ee8b3eaa3c0091cfec4a2bda8fb75286e7b32071410701801b755d2b"},{"p":"model/base-d18.dat","size":2097152,"sha":"b53c5adf00709dc47d88cb418e2bf96724215105fbf5b18e4d66878b30141655"},{"p":"model/base-d19.dat","size":2097152,"sha":"634d3874a667983e1ca1fdf1f4747586b0348aa69169587c78007be232a510aa"},{"p":"model/base-d20.dat","size":2097152,"sha":"93417f9983414860ce143c27c2d040386c62a30417b4131b026d52158fedf025"},{"p":"model/base-d21.dat","size":2097152,"sha":"2d13575efad788e1e4aa26d562ab2b145ebec19548b34c297a5822bd0a1f73c5"},{"p":"model/base-d22.dat","size":2097152,"sha":"14c748ad02a188ef64d2b726b067a0c8c054761a6b8db8929e57e7e08c26f822"},{"p":"model/base-d23.dat","size":2097152,"sha":"33df08f673c507b61da67a84198e3c8eeac5c8d9018961fa0a5c66f44f7a96be"},{"p":"model/base-d24.dat","size":2097152,"sha":"654e3d8826fe4c2cad06f5be215bb6eb7f67937ba4d25bfaa03cf4ebf6b7dfa8"},{"p":"model/base-d25.dat","size":883489,"sha":"0a3755ddf1012ea3ba9167ce08c42024be1ced18d4982ee23d394afb4a8d654e"}],"size":51215137,"sha":"5af67910d60ebcf8857dfa9fd7a21afa2e7df017b8e3e61ac517ae5eb6dfa32c"}}},"tokens":{"parts":[{"p":"model/tok1.dat","size":816730,"sha":"b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126"}],"size":816730,"sha":"b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126"}};
+  const WORKER_SRC = "/* Whisper worker: log-mel features, encoder, greedy decoder with timestamps. Runs off the main thread. */\n'use strict';\nvar ort = null, encS = null, decS = null, cancelFlag = false, ready = false;\nvar TOK = null, SUPPRESS = null, SPACE_ID = 220;\nvar SOT = 50258, EOT = 50257, LANG0 = 50259, NLANG = 99, TRANSLATE = 50358, TRANSCRIBE = 50359, TS0 = 50364, V = 51865;\nvar SR = 16000, WIN = 480000, NFFT = 400, HOP = 160, NMEL = 80, NBIN = 201, MAXTOK = 224;\n\nfunction post(o) { self.postMessage(o); }\n// Lets queued messages (such as Stop) be handled between steps; the engine otherwise runs steps back to back.\nvar yieldCh = new MessageChannel();\nfunction yieldNow() { return new Promise(function (r) { yieldCh.port1.onmessage = function () { r(); }; yieldCh.port2.postMessage(0); }); }\n\nself.onmessage = async function (e) {\n  var m = e.data;\n  try {\n    if (m.type === 'init') await init(m);\n    else if (m.type === 'run') await run(m);\n    else if (m.type === 'cancel') cancelFlag = true;\n    else if (m.type === 'mel') post({ type: 'mel', data: logMel(m.audio, 0) });\n  } catch (err) {\n    post({ type: 'error', where: m.type, message: (err && err.message) ? err.message : String(err) });\n  }\n};\n\n/* ---------- start-up ---------- */\nasync function init(m) {\n  var ortUrl = URL.createObjectURL(new Blob([m.ortJs], { type: 'text/javascript' }));\n  importScripts(ortUrl);\n  URL.revokeObjectURL(ortUrl);\n  if (typeof self.ort === 'undefined') throw new Error('the runtime script did not define ort');\n  ort = self.ort;\n  var mjsUrl = URL.createObjectURL(new Blob([m.mjs], { type: 'text/javascript' }));\n  var wasmUrl = URL.createObjectURL(new Blob([m.wasm], { type: 'application/wasm' }));\n  ort.env.wasm.numThreads = 1;\n  ort.env.wasm.proxy = false;\n  ort.env.wasm.wasmPaths = { mjs: mjsUrl, wasm: wasmUrl };\n  post({ type: 'stage', text: 'Starting the engine' });\n  var opts = { executionProviders: ['wasm'], graphOptimizationLevel: 'all' };\n  encS = await ort.InferenceSession.create(new Uint8Array(m.enc), opts);\n  post({ type: 'stage', text: 'Starting the decoder' });\n  decS = await ort.InferenceSession.create(new Uint8Array(m.dec), opts);\n  loadTokens(new TextDecoder().decode(new Uint8Array(m.tokens)));\n  buildFilters();\n  ready = true;\n  post({ type: 'ready' });\n}\n\nfunction b64(s) { var bin = atob(s), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }\n\nfunction loadTokens(text) {\n  TOK = new Array(V);\n  var byText = {};\n  text.split('\\n').forEach(function (line) {\n    var p = line.trim().split(' ');\n    if (p.length < 2) return;\n    var id = parseInt(p[1], 10), bytes;\n    try { bytes = b64(p[0]); } catch (e) { return; }   // a stray line in the vocabulary file\n    if (!(id >= 0 && id < V)) return;\n    TOK[id] = bytes;\n    var s = new TextDecoder().decode(bytes);\n    if (!(s in byText)) byText[s] = id;\n  });\n  SPACE_ID = byText[' '] !== undefined ? byText[' '] : 220;\n  // Tokens the model should not produce (symbols and music notes), as in the reference decoder.\n  var sup = {};\n  var symbols = '\"#()*+/:;<=>@[\\\\]^_`{|}~\u300c\u300d\u300e\u300f'.split('').concat('<< >> <<< >>> -- --- -( -[ (\\' (\" (( )) ((( ))) [[ ]] {{ }} \u266a\u266a \u266a\u266a\u266a'.split(' '));\n  symbols.concat('\u2669\u266a\u266b\u266c\u266d\u266e\u266f'.split('')).forEach(function (s) {\n    if (byText[s] !== undefined) sup[byText[s]] = 1;\n    if (byText[' ' + s] !== undefined) sup[byText[' ' + s]] = 1;\n  });\n  if (byText[' -'] !== undefined) sup[byText[' -']] = 1;\n  if (byText[\" '\"] !== undefined) sup[byText[\" '\"]] = 1;\n  SUPPRESS = Object.keys(sup).map(Number);\n}\n\n/* ---------- log-mel spectrogram (matches the reference implementation) ---------- */\nvar FILT = null, HANN = null, TW = null;\n\nfunction buildFilters() {\n  var fsp = 200 / 3, minLogHz = 1000, minLogMel = minLogHz / fsp, logstep = Math.log(6.4) / 27;\n  function h2m(f) { return f >= minLogHz ? minLogMel + Math.log(f / minLogHz) / logstep : f / fsp; }\n  function m2h(m) { return m >= minLogMel ? minLogHz * Math.exp(logstep * (m - minLogMel)) : fsp * m; }\n  var lo = h2m(0), hi = h2m(SR / 2), pts = [];\n  for (var i = 0; i < NMEL + 2; i++) pts.push(m2h(lo + (hi - lo) * i / (NMEL + 1)));\n  var fft = []; for (var k = 0; k < NBIN; k++) fft.push((SR / 2) * k / (NBIN - 1));\n  FILT = new Float32Array(NMEL * NBIN);\n  for (var m = 0; m < NMEL; m++) {\n    var d1 = pts[m + 1] - pts[m], d2 = pts[m + 2] - pts[m + 1], en = 2 / (pts[m + 2] - pts[m]);\n    for (var k2 = 0; k2 < NBIN; k2++) {\n      var lower = (fft[k2] - pts[m]) / d1, upper = (pts[m + 2] - fft[k2]) / d2;\n      FILT[m * NBIN + k2] = Math.max(0, Math.min(lower, upper)) * en;\n    }\n  }\n  HANN = new Float64Array(NFFT);\n  for (var n = 0; n < NFFT; n++) HANN[n] = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / NFFT);\n  TW = { c: new Float64Array(NFFT), s: new Float64Array(NFFT) };\n  for (var t = 0; t < NFFT; t++) { TW.c[t] = Math.cos(2 * Math.PI * t / NFFT); TW.s[t] = -Math.sin(2 * Math.PI * t / NFFT); }\n}\n\n// Mixed-radix recursive FFT for N = 400 (out of place).\nvar tr = new Float64Array(8), ti = new Float64Array(8);\nfunction fftRec(inRe, inIm, inOff, inStride, n, outRe, outIm, outOff) {\n  if (n === 1) { outRe[outOff] = inRe[inOff]; outIm[outOff] = inIm[inOff]; return; }\n  var p = 2; while (n % p) p++;\n  var m = n / p, step = NFFT / n, pstep = NFFT / p;\n  for (var j = 0; j < p; j++) fftRec(inRe, inIm, inOff + j * inStride, inStride * p, m, outRe, outIm, outOff + j * m);\n  for (var k = 0; k < m; k++) {\n    for (var j2 = 0; j2 < p; j2++) {\n      var idx = (j2 * k * step) % NFFT, r = outRe[outOff + j2 * m + k], i = outIm[outOff + j2 * m + k];\n      tr[j2] = r * TW.c[idx] - i * TW.s[idx]; ti[j2] = r * TW.s[idx] + i * TW.c[idx];\n    }\n    for (var q = 0; q < p; q++) {\n      var sr = 0, si = 0;\n      for (var j3 = 0; j3 < p; j3++) {\n        var w = (j3 * q * pstep) % NFFT;\n        sr += tr[j3] * TW.c[w] - ti[j3] * TW.s[w];\n        si += tr[j3] * TW.s[w] + ti[j3] * TW.c[w];\n      }\n      outRe[outOff + k + q * m] = sr; outIm[outOff + k + q * m] = si;\n    }\n  }\n}\n\n// audio: Float32Array of 16 kHz samples; start: first sample of the 30 s window. Returns Float32Array [80 x 3000].\nfunction logMel(audio, start) {\n  var n = Math.max(0, Math.min(WIN, audio.length - start));\n  var padLen = WIN + NFFT, T = WIN / HOP;\n  var re = new Float64Array(NFFT), im = new Float64Array(NFFT), oRe = new Float64Array(NFFT), oIm = new Float64Array(NFFT);\n  var power = new Float32Array(NBIN * T);\n  function sample(i) { // reflect-padded read of the window, zero beyond the audio\n    var j = i - NFFT / 2;\n    if (j < 0) j = -j;\n    else if (j >= WIN) j = 2 * (WIN - 1) - j;\n    return j < n ? audio[start + j] : 0;\n  }\n  for (var f = 0; f < T; f++) {\n    var base = f * HOP;\n    for (var t = 0; t < NFFT; t++) { re[t] = sample(base + t) * HANN[t]; im[t] = 0; }\n    fftRec(re, im, 0, 1, NFFT, oRe, oIm, 0);\n    for (var k = 0; k < NBIN; k++) power[k * T + f] = oRe[k] * oRe[k] + oIm[k] * oIm[k];\n  }\n  var out = new Float32Array(NMEL * T), mx = -1e30;\n  for (var m = 0; m < NMEL; m++) {\n    for (var f2 = 0; f2 < T; f2++) {\n      var s = 0, fo = m * NBIN;\n      for (var k2 = 0; k2 < NBIN; k2++) { var w = FILT[fo + k2]; if (w !== 0) s += w * power[k2 * T + f2]; }\n      var v = Math.log10(Math.max(s, 1e-10));\n      out[m * T + f2] = v; if (v > mx) mx = v;\n    }\n  }\n  var floor = mx - 8;\n  for (var i = 0; i < out.length; i++) out[i] = ((out[i] < floor ? floor : out[i]) + 4) / 4;\n  return out;\n}\n\n/* ---------- decoding ---------- */\nfunction i64(arr, dims) { var b = new BigInt64Array(arr.length); for (var i = 0; i < arr.length; i++) b[i] = BigInt(arr[i]); return new ort.Tensor('int64', b, dims); }\n\nfunction lastRow(logits) { // logits tensor [1, n, V] -> Float32Array copy of the last row\n  var n = logits.dims[1], off = (n - 1) * V;\n  return Float32Array.prototype.slice.call(logits.data, off, off + V);\n}\n\nasync function detectLanguage(cross) {\n  var L = cross.L, D = cross.D;\n  var zeros = function () { return new ort.Tensor('float32', new Float32Array(L * 448 * D), [L, 1, 448, D]); };\n  var r = await decS.run({ tokens: i64([SOT], [1, 1]), in_n_layer_self_k_cache: zeros(), in_n_layer_self_v_cache: zeros(), n_layer_cross_k: cross.k, n_layer_cross_v: cross.v, offset: i64([0], [1]) });\n  var row = lastRow(r.logits), best = 0, bv = -1e30;\n  for (var i = 0; i < NLANG; i++) if (row[LANG0 + i] > bv) { bv = row[LANG0 + i]; best = i; }\n  return best;\n}\n\nfunction applyRules(lg, toks) {\n  var i, n = toks.length;\n  for (i = EOT + 1; i < TS0; i++) lg[i] = -Infinity;           // all special tokens except end-of-text and timestamps\n  for (i = 0; i < SUPPRESS.length; i++) lg[SUPPRESS[i]] = -Infinity;\n  if (n === 0) { lg[EOT] = -Infinity; lg[SPACE_ID] = -Infinity; }\n  var lastTs = n >= 1 && toks[n - 1] >= TS0, penTs = n < 2 || toks[n - 2] >= TS0;\n  if (lastTs) {\n    if (penTs) for (i = TS0; i < V; i++) lg[i] = -Infinity;     // a pair is complete: text must follow\n    else for (i = 0; i < EOT; i++) lg[i] = -Infinity;           // an opening stamp: a closing stamp (or end) must follow\n  }\n  var tsList = toks.filter(function (t) { return t >= TS0; });\n  if (tsList.length) {\n    var last = tsList[tsList.length - 1];\n    var floorTs = (lastTs && !penTs) ? last : last + 1;\n    for (i = TS0; i < floorTs && i < V; i++) lg[i] = -Infinity; // time only moves forward\n  }\n  if (n === 0) {\n    for (i = 0; i < TS0; i++) lg[i] = -Infinity;                // the first token is a timestamp, within the first second\n    for (i = TS0 + 51; i < V; i++) lg[i] = -Infinity;\n  }\n  // If the timestamps together are more likely than any single word, force a timestamp.\n  var mx = -Infinity; for (i = 0; i < V; i++) if (lg[i] > mx) mx = lg[i];\n  var sum = 0; for (i = 0; i < V; i++) if (lg[i] !== -Infinity) sum += Math.exp(lg[i] - mx);\n  var lse = mx + Math.log(sum);\n  var tsSum = 0; for (i = TS0; i < V; i++) if (lg[i] !== -Infinity) tsSum += Math.exp(lg[i] - mx);\n  var tsLp = tsSum > 0 ? mx + Math.log(tsSum) - lse : -Infinity;\n  var txtMax = -Infinity; for (i = 0; i < TS0; i++) if (lg[i] !== -Infinity && lg[i] - lse > txtMax) txtMax = lg[i] - lse;\n  if (tsLp > txtMax) for (i = 0; i < TS0; i++) lg[i] = -Infinity;\n}\n\nfunction looped(toks) {\n  for (var L = 1; L <= 6; L++) {\n    var need = L * 6; if (toks.length < need) continue;\n    var ok = true;\n    for (var i = toks.length - need; i < toks.length - L; i++) if (toks[i] !== toks[i + L]) { ok = false; break; }\n    if (ok) return L;\n  }\n  return 0;\n}\n\nasync function decodeWindow(mel, lang, task) {\n  await yieldNow();\n  var enc = await encS.run({ mel: new ort.Tensor('float32', mel, [1, NMEL, WIN / HOP]) });\n  var ck = enc.n_layer_cross_k, cv = enc.n_layer_cross_v;\n  var L = ck.dims[0], D = ck.dims[3];\n  var cross = { k: ck, v: cv, L: L, D: D };\n  if (lang < 0) { lang = await detectLanguage(cross); post({ type: 'lang', index: lang }); }\n  var sk = new ort.Tensor('float32', new Float32Array(L * 448 * D), [L, 1, 448, D]);\n  var sv = new ort.Tensor('float32', new Float32Array(L * 448 * D), [L, 1, 448, D]);\n  var cur = [SOT, LANG0 + lang, task === 'translate' ? TRANSLATE : TRANSCRIBE];\n  var toks = [], offset = 0, loop = 0;\n  for (var step = 0; step < MAXTOK; step++) {\n    await yieldNow();\n    if (cancelFlag) break;\n    var r = await decS.run({ tokens: i64(cur, [1, cur.length]), in_n_layer_self_k_cache: sk, in_n_layer_self_v_cache: sv, n_layer_cross_k: ck, n_layer_cross_v: cv, offset: i64([offset], [1]) });\n    offset += cur.length; sk = r.out_n_layer_self_k_cache; sv = r.out_n_layer_self_v_cache;\n    var lg = lastRow(r.logits);\n    applyRules(lg, toks);\n    var best = 0, bv = -Infinity;\n    for (var i = 0; i < V; i++) if (lg[i] > bv) { bv = lg[i]; best = i; }\n    if (best === EOT) break;\n    toks.push(best); cur = [best];\n    loop = looped(toks);\n    if (loop) { toks.length -= loop * 5; break; }\n  }\n  return { tokens: toks, lang: lang, looped: !!loop };\n}\n\nfunction tokText(ids) {\n  var n = 0, i; for (i = 0; i < ids.length; i++) n += TOK[ids[i]] ? TOK[ids[i]].length : 0;\n  var buf = new Uint8Array(n), o = 0;\n  for (i = 0; i < ids.length; i++) { var b = TOK[ids[i]]; if (b) { buf.set(b, o); o += b.length; } }\n  return new TextDecoder().decode(buf).trim();\n}\n\n// Turns timestamp-delimited tokens into segments. Returns {segs, seekTo} (seekTo in seconds inside the window, or null for the whole window).\nfunction parse(tokens) {\n  var segs = [], start = null, text = [], lastEnd = 0, i;\n  for (i = 0; i < tokens.length; i++) {\n    var t = tokens[i];\n    if (t >= TS0) {\n      var sec = (t - TS0) * 0.02;\n      if (start === null) start = sec;\n      else if (!text.length) start = sec;\n      else { segs.push({ start: start, end: sec, text: tokText(text) }); lastEnd = sec; start = null; text = []; }\n    } else {\n      if (start === null) start = lastEnd;\n      text.push(t);\n    }\n  }\n  var seekTo = null;\n  if (text.length) {\n    if (segs.length) seekTo = start !== null ? start : null;   // drop the cut-off tail; the next window starts there\n    else {\n      var lastTs = 30; for (i = tokens.length - 1; i >= 0; i--) if (tokens[i] >= TS0) { lastTs = (tokens[i] - TS0) * 0.02 || 30; break; }\n      segs.push({ start: start || 0, end: Math.max(lastTs, (start || 0) + 0.5), text: tokText(text) });\n    }  } else if (start !== null && segs.length) {\n    seekTo = start;                                            // ended on an opening stamp: continue from that time\n  }\n  return { segs: segs.filter(function (s) { return s.text; }), seekTo: seekTo };\n}\n\nfunction rmsOf(a, s, e) {\n  var sum = 0, n = Math.max(1, e - s), mx = 0;\n  for (var i = s; i < e; i++) { var v = a[i]; sum += v * v; if (v > mx || -v > mx) mx = Math.abs(v); }\n  return { rms: Math.sqrt(sum / n), peak: mx };\n}\n\nasync function run(m) {\n  if (!ready) throw new Error('the model is not ready');\n  cancelFlag = false;\n  var audio = m.audio, total = audio.length, seek = 0, lang = m.lang >= 0 ? m.lang : -1, all = [];\n  var task = m.task === 'translate' ? 'translate' : 'transcribe';\n  var t0 = performance.now();\n  while (seek < total - SR * 0.3 && !cancelFlag) {\n    await yieldNow();\n    if (cancelFlag) break;\n    var end = Math.min(total, seek + WIN), lv = rmsOf(audio, seek, end), newSegs = [], advance = WIN, looped = false;\n    if (lv.rms < 0.0015 && lv.peak < 0.02) {\n      advance = WIN;                                           // silence: nothing to transcribe\n    } else {\n      var mel = logMel(audio, seek);\n      var out = await decodeWindow(mel, lang, task);\n      if (lang < 0) lang = out.lang;\n      if (cancelFlag) break;\n      var parsed = parse(out.tokens); looped = out.looped;\n      var offs = seek / SR;\n      parsed.segs.forEach(function (s) {\n        var st = offs + s.start, en = Math.min(offs + s.end, total / SR);\n        if (s.text.length < 4 && lv.rms < 0.006) return;       // stray words in near-silence\n        newSegs.push({ start: st, end: Math.max(en, st), text: s.text });\n      });\n      if (parsed.seekTo !== null && !looped && parsed.seekTo > 1) advance = Math.round(parsed.seekTo * SR);\n      else if (parsed.seekTo === null && !looped && parsed.segs.length) {\n        // The model sometimes stops early and would skip the rest of the window. If speech is still audible after the\n        // last line, start the next window right after that line instead of jumping ahead.\n        var lastEnd = parsed.segs[parsed.segs.length - 1].end, winSecs = Math.min(WIN, total - seek) / SR;\n        if (lastEnd > 1 && winSecs - lastEnd > 2) {\n          var rest = rmsOf(audio, seek + Math.round(lastEnd * SR), seek + Math.round(winSecs * SR));\n          if (rest.rms > 0.004) advance = Math.round(lastEnd * SR);\n        }\n      }\n    }\n    all = all.concat(newSegs);\n    seek += Math.max(advance, SR);                              // always move forward\n    post({ type: 'progress', done: Math.min(seek, total) / SR, total: total / SR, segs: newSegs, lang: lang, ms: performance.now() - t0 });\n  }\n  post({ type: cancelFlag ? 'cancelled' : 'done', segs: all, lang: lang, ms: performance.now() - t0 });\n}\n";
+  const LANGS = [['en','English'],['zh','Chinese'],['de','German'],['es','Spanish'],['ru','Russian'],['ko','Korean'],['fr','French'],['ja','Japanese'],['pt','Portuguese'],['tr','Turkish'],['pl','Polish'],['ca','Catalan'],['nl','Dutch'],['ar','Arabic'],['sv','Swedish'],['it','Italian'],['id','Indonesian'],['hi','Hindi'],['fi','Finnish'],['vi','Vietnamese'],['he','Hebrew'],['uk','Ukrainian'],['el','Greek'],['ms','Malay'],['cs','Czech'],['ro','Romanian'],['da','Danish'],['hu','Hungarian'],['ta','Tamil'],['no','Norwegian'],['th','Thai'],['ur','Urdu'],['hr','Croatian'],['bg','Bulgarian'],['lt','Lithuanian'],['la','Latin'],['mi','Maori'],['ml','Malayalam'],['cy','Welsh'],['sk','Slovak'],['te','Telugu'],['fa','Persian'],['lv','Latvian'],['bn','Bengali'],['sr','Serbian'],['az','Azerbaijani'],['sl','Slovenian'],['kn','Kannada'],['et','Estonian'],['mk','Macedonian'],['br','Breton'],['eu','Basque'],['is','Icelandic'],['hy','Armenian'],['ne','Nepali'],['mn','Mongolian'],['bs','Bosnian'],['kk','Kazakh'],['sq','Albanian'],['sw','Swahili'],['gl','Galician'],['mr','Marathi'],['pa','Punjabi'],['si','Sinhala'],['km','Khmer'],['sn','Shona'],['yo','Yoruba'],['so','Somali'],['af','Afrikaans'],['oc','Occitan'],['ka','Georgian'],['be','Belarusian'],['tg','Tajik'],['sd','Sindhi'],['gu','Gujarati'],['am','Amharic'],['yi','Yiddish'],['lo','Lao'],['uz','Uzbek'],['fo','Faroese'],['ht','Haitian Creole'],['ps','Pashto'],['tk','Turkmen'],['nn','Nynorsk'],['mt','Maltese'],['sa','Sanskrit'],['lb','Luxembourgish'],['my','Myanmar'],['bo','Tibetan'],['tl','Tagalog'],['mg','Malagasy'],['as','Assamese'],['tt','Tatar'],['haw','Hawaiian'],['ln','Lingala'],['ha','Hausa'],['ba','Bashkir'],['jw','Javanese'],['su','Sundanese']];
+  const INDIA = ['hi', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'pa', 'ur'];
+  const MAX_SECONDS = 90 * 60, MAX_BYTES = 600 * 1024 * 1024;
+  const RTL = { ar: 1, he: 1, fa: 1, ur: 1, ps: 1, sd: 1, yi: 1 };
+
+  /* ---------- state ---------- */
+  const st = { audio: null, dur: 0, name: '', url: null, peaks: null, segs: [], modelKey: 'base', task: 'transcribe', running: false, doneSec: 0, langIdx: -1, detected: -1, recStream: null, recorder: null, recTimer: 0 };
+  let engine = null;            // { key, worker, ready, promise }
+  let audioEl = null;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const events = [], blocked = [];
+  const note = (m) => { events.push((performance.now() / 1000).toFixed(1) + 's  ' + m); if (events.length > 80) events.shift(); };
+  const yn = (v) => (v ? 'yes' : 'no');
+  const say = (t, err) => { const s = $('#status'); s.textContent = t || ''; s.classList.toggle('err', !!err); };
+  document.addEventListener('securitypolicyviolation', (e) => { blocked.push((e.violatedDirective || 'policy') + ' blocked ' + (e.blockedURI || 'inline')); note('security policy: ' + blocked[blocked.length - 1]); });
+
+  const fmt = (s) => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+  const stamp = (s, sep) => { s = Math.max(0, s); const ms = Math.round((s % 1) * 1000), t = Math.floor(s); const p = (n, w) => String(n).padStart(w || 2, '0'); return p(Math.floor(t / 3600)) + ':' + p(Math.floor((t % 3600) / 60)) + ':' + p(t % 60) + sep + p(ms >= 1000 ? 999 : ms, 3); };
+  const mb = (n) => (n / 1048576).toFixed(n < 10485760 ? 1 : 0) + ' MB';
+
+  /* ---------- model files: download, verify, cache ---------- */
+  const CACHE_NAME = 'verbatim-' + MF.v;
+  const SIMD_OK = (() => { try { return typeof WebAssembly === 'object' && WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11])); } catch (e) { return false; } })();
+  let dl = { total: 0, loaded: 0 };
+  const looksLikeHtml = (u8) => /^\s*<(!doctype|html)/i.test(new TextDecoder().decode(u8.subarray(0, 64)));
+  async function sha256hex(u8) { if (!(self.crypto && crypto.subtle)) return null; const d = await crypto.subtle.digest('SHA-256', u8); return Array.from(new Uint8Array(d), (b) => b.toString(16).padStart(2, '0')).join(''); }
+  async function verify(part, u8) {
+    if (looksLikeHtml(u8)) return 'the server returned a web page instead of the file';
+    if (u8.length !== part.size) return 'wrong size (' + u8.length + ' of ' + part.size + ' bytes)';
+    const h = await sha256hex(u8);
+    if (h && h !== part.sha) return 'contents were changed on the way (checksum mismatch)';
+    return null;
+  }
+  let slots = 0; const waiting = [];
+  async function withSlot(fn) { while (slots >= 3) await new Promise((r) => waiting.push(r)); slots++; try { return await fn(); } finally { slots--; const w = waiting.shift(); if (w) w(); } }
+  async function cacheOpen() { try { return self.caches ? await caches.open(CACHE_NAME) : null; } catch (e) { return null; } }
+  async function cacheGet(key) { try { const c = await cacheOpen(); const r = c && await c.match(key); return r ? new Uint8Array(await r.arrayBuffer()) : null; } catch (e) { return null; } }
+  async function cachePut(key, u8) { try { const c = await cacheOpen(); if (c) await c.put(key, new Response(u8)); } catch (e) {} }
+  async function cacheClean() { try { if (!self.caches) return; for (const k of await caches.keys()) if (k.startsWith('verbatim-') && k !== CACHE_NAME) await caches.delete(k); } catch (e) {} }
+
+  function progressChip() {
+    const pct = dl.total ? Math.min(99, Math.round(100 * dl.loaded / dl.total)) : 0;
+    setModel('loading', 'Downloading ' + pct + '%');
+    const bar = $('#loadBar'); if (bar) { bar.style.width = pct + '%'; $('#loadText').textContent = 'Downloading the model: ' + mb(dl.loaded) + ' of ' + mb(dl.total) + ' (kept on your device after this)'; }
+  }
+  async function fetchPart(part) {
+    const key = new URL(part.p + '?v=' + MF.v, document.baseURI).href;
+    const hit = await cacheGet(key);
+    if (hit && !(await verify(part, hit))) { note(part.p + ' from browser cache'); dl.loaded += part.size; progressChip(); return hit; }
+    let reason = 'unknown problem', tries = 5;
+    for (let attempt = 0; attempt < tries; attempt++) {
+      if (attempt) { note(part.p + ' retry ' + attempt + ' (' + reason + ')'); await sleep(Math.min(6000, 400 * 2 ** attempt)); }
+      const u8 = await withSlot(async () => {
+        const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 60000);
+        try {
+          const res = await fetch(key, { cache: attempt ? 'reload' : 'default', signal: ctl.signal });
+          if (!res.ok) { reason = 'HTTP ' + res.status; if (res.status === 404 || res.status === 410) tries = Math.min(tries, attempt + 2); return null; }
+          return new Uint8Array(await res.arrayBuffer());
+        } catch (e) { reason = (e && e.name === 'AbortError') ? 'download timed out' : 'network error (' + ((e && e.message) || 'unknown') + ')'; return null; }
+        finally { clearTimeout(timer); }
+      });
+      if (!u8) continue;
+      const bad = await verify(part, u8);
+      if (bad) { reason = bad; continue; }
+      await cachePut(key, u8);
+      dl.loaded += part.size; progressChip();
+      return u8;
+    }
+    throw new Error(part.p + ': ' + reason);
+  }
+  async function joinParts(spec) {
+    const parts = await Promise.all(spec.parts.map(fetchPart));
+    const buf = new Uint8Array(parts.reduce((n, x) => n + x.length, 0)); let off = 0;
+    for (const x of parts) { buf.set(x, off); off += x.length; }
+    return buf;
+  }
+  function runScriptBytes(u8) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(new Blob([u8], { type: 'text/javascript' })); const s = document.createElement('script');
+      s.src = url; s.onload = () => { URL.revokeObjectURL(url); resolve(); }; s.onerror = () => { URL.revokeObjectURL(url); reject(new Error('the browser refused to run a helper script')); };
+      document.head.appendChild(s);
+    });
+  }
+  async function gunzip(u8) {
+    if (typeof DecompressionStream !== 'undefined') {
+      try { const s = new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip')); return new Uint8Array(await new Response(s).arrayBuffer()); }
+      catch (e) { note('built-in unpack failed: ' + ((e && e.message) || e)); }
+    }
+    if (typeof window.fflate === 'undefined') await runScriptBytes(await joinParts(MF.vendor.fflate));
+    return fflate.gunzipSync(u8);
+  }
+
+  function setModel(state, text) { const el = $('#model'); el.dataset.state = state; $('#modelText').textContent = text; }
+  const modelName = (k) => k === 'tiny' ? 'Tiny' : 'Base';
+
+  function startEngine(key) {
+    const spec = MF.models[key];
+    const p = (async () => {
+      if (typeof WebAssembly !== 'object') throw new Error('This browser cannot run WebAssembly.');
+      if (!SIMD_OK) throw new Error('This browser is too old for the model (no WebAssembly SIMD). Update Chrome, Edge, Firefox or Safari 16.4 or newer.');
+      if (typeof Worker === 'undefined') throw new Error('This browser does not support web workers.');
+      const need = [MF.vendor.ort, MF.vendor.mjs, MF.vendor.wasm, MF.tokens, spec.enc, spec.dec];
+      dl = { total: need.reduce((n, s) => n + s.parts.reduce((m, x) => m + x.size, 0), 0), loaded: 0 };
+      note('start ' + key + ' (' + mb(dl.total) + ')');
+      progressChip();
+      const [ortJs, mjs, wasmGz, tokens, enc, dec] = await Promise.all(need.map(joinParts));
+      let wasm;
+      try { wasm = await gunzip(wasmGz); } catch (e) { throw new Error('The engine files are damaged or could not be unpacked (' + ((e && e.message) || 'unpack failed') + ').'); }
+      if (wasm.length !== MF.vendor.wasm.size) throw new Error('The engine is incomplete (' + wasm.length + ' of ' + MF.vendor.wasm.size + ' bytes).');
+      if (!(wasm[0] === 0 && wasm[1] === 0x61 && wasm[2] === 0x73 && wasm[3] === 0x6d)) throw new Error('The engine did not unpack to a WebAssembly file.');
+      setModel('loading', 'Starting ' + modelName(key));
+      const worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' })));
+      const eng = { key, worker, ready: false };
+      await new Promise((resolve, reject) => {
+        worker.onmessage = (e) => {
+          const m = e.data;
+          if (m.type === 'stage') { note(m.text); setModel('loading', m.text); }
+          else if (m.type === 'ready') { eng.ready = true; resolve(); }
+          else if (m.type === 'error') reject(new Error(m.message));
+        };
+        worker.onerror = (e) => reject(new Error('The background worker failed to start' + (e && e.message ? ': ' + e.message : '.')));
+        worker.postMessage({ type: 'init', ortJs: ortJs.buffer, mjs: mjs.buffer, wasm: wasm.buffer, tokens: tokens.buffer, enc: enc.buffer, dec: dec.buffer }, [ortJs.buffer, mjs.buffer, wasm.buffer, tokens.buffer, enc.buffer, dec.buffer]);
+      });
+      worker.onerror = null;
+      worker.onmessage = onWorker;
+      note('model ready: ' + key);
+      setModel('ready', modelName(key) + ' model ready');
+      if (!st.audio && !st.running) say('Model ready. Drop in a recording or press Record.');
+      cacheClean();
+      return eng;
+    })();
+    return p;
+  }
+
+  let lastError = '';
+  function ensureEngine() {
+    if (engine && engine.key === st.modelKey && engine.promise) return engine.promise;
+    if (engine && engine.worker) { try { engine.worker.terminate(); } catch (e) {} }
+    const key = st.modelKey, rec = { key, promise: null, worker: null };
+    engine = rec; lastError = ''; $('#modelRetry').hidden = true;
+    rec.promise = startEngine(key).then((eng) => { rec.worker = eng.worker; return eng; }).catch((e) => {
+      if (engine === rec) engine = null;
+      lastError = explain(e);
+      console.error('Verbatim model error:', e);
+      note('failed: ' + lastError);
+      setModel('error', 'Model failed to start');
+      $('#model').title = lastError;
+      $('#modelRetry').hidden = false;
+      refreshReport();
+      throw e;
+    });
+    return rec.promise;
+  }
+  function explain(e) {
+    const m = (e && e.message) ? e.message : String(e);
+    if (blocked.length) return 'The site security settings blocked part of the page (' + blocked[0] + '). ' + m;
+    if (/out of memory|OOM|allocation/i.test(m)) return 'The browser ran out of memory. Close other tabs, or choose the Tiny model. ' + m;
+    return m;
+  }
+
+  /* ---------- audio loading ---------- */
+  async function decodeToMono16k(buf) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('This browser cannot decode audio.');
+    let ctx; try { ctx = new AC({ sampleRate: 16000 }); } catch (e) { ctx = new AC(); }
+    const ab = await new Promise((res, rej) => { const p = ctx.decodeAudioData(buf, res, rej); if (p && p.catch) p.catch(rej); });
+    try { ctx.close(); } catch (e) {}
+    if (ab.duration > MAX_SECONDS) throw new Error('This recording is longer than 90 minutes. Please split it into shorter parts.');
+    if (Math.round(ab.sampleRate) === 16000) {
+      const n = ab.length, out = new Float32Array(n), chs = [];
+      for (let c = 0; c < ab.numberOfChannels; c++) chs.push(ab.getChannelData(c));
+      for (let i = 0; i < n; i++) { let s = 0; for (let c = 0; c < chs.length; c++) s += chs[c][i]; out[i] = s / chs.length; }
+      return out;
+    }
+    const oc = new OfflineAudioContext(1, Math.ceil(ab.duration * 16000), 16000), src = oc.createBufferSource();
+    src.buffer = ab; src.connect(oc.destination); src.start();
+    const r = await oc.startRendering();
+    return new Float32Array(r.getChannelData(0));
+  }
+
+  function peaksOf(a, n) {
+    const out = new Float32Array(n), step = a.length / n;
+    for (let i = 0; i < n; i++) { let mx = 0; const s = Math.floor(i * step), e = Math.min(a.length, Math.floor((i + 1) * step)); for (let j = s; j < e; j += 4) { const v = Math.abs(a[j]); if (v > mx) mx = v; } out[i] = mx; }
+    let g = 0; for (let i = 0; i < n; i++) if (out[i] > g) g = out[i];
+    if (g > 0) for (let i = 0; i < n; i++) out[i] = Math.sqrt(out[i] / g);
+    return out;
+  }
+
+  function wavBlob(a) {
+    const n = a.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) { const s = Math.max(-1, Math.min(1, a[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+    return new Blob([buf], { type: 'audio/wav' });
+  }
+
+  async function loadBlob(blob, name, playBlob) {
+    if (st.running) return;
+    if (blob.size > MAX_BYTES) { say('That file is larger than 600 MB. Please use a smaller one.', true); return; }
+    say('Reading the audio…');
+    try {
+      const audio = await decodeToMono16k(await blob.arrayBuffer());
+      if (audio.length < 1600) throw new Error('That recording is too short.');
+      clearAudio();
+      st.audio = audio; st.dur = audio.length / 16000; st.name = name; st.peaks = peaksOf(audio, 640);
+      st.url = URL.createObjectURL(playBlob || blob);
+      audioEl = new Audio(st.url); audioEl.preload = 'auto';
+      audioEl.addEventListener('timeupdate', onTime); audioEl.addEventListener('play', syncPlay); audioEl.addEventListener('pause', syncPlay); audioEl.addEventListener('ended', syncPlay);
+      $('#dropWrap').hidden = true; $('#fileBox').hidden = false;
+      $('#fileName').textContent = name; $('#fileMeta').textContent = fmt(st.dur) + ' · ' + mb(blob.size);
+      st.doneSec = 0; st.segs = []; renderSegs(); updateActions();
+      drawWave(); $('#go').disabled = false;
+      say('Ready. Press Transcribe.');
+      ensureEngine().catch(() => {});      // start the model download now, so it is ready sooner
+    } catch (e) {
+      console.error(e);
+      say(/decode|EncodingError|Unable/i.test((e && e.message) || '') ? 'This browser could not read that file. Try MP3, WAV, M4A, OGG or MP4.' : ((e && e.message) || 'Could not read that file.'), true);
+    }
+  }
+  function clearAudio() {
+    if (audioEl) { audioEl.pause(); audioEl = null; }
+    if (st.url) { URL.revokeObjectURL(st.url); st.url = null; }
+    st.audio = null; st.peaks = null; st.segs = [];
+  }
+  function removeFile() {
+    if (st.running) return;
+    clearAudio(); $('#fileBox').hidden = true; $('#dropWrap').hidden = false; $('#go').disabled = true;
+    st.detected = -1; renderSegs(); updateActions(); say('');
+  }
+
+  /* ---------- waveform ---------- */
+  function drawWave() {
+    const cv = $('#waveCv'); if (!cv || !st.peaks) return;
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (!w) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+    const cs = getComputedStyle(document.documentElement), acc = cs.getPropertyValue('--acc').trim(), wave = cs.getPropertyValue('--wave').trim(), ink = cs.getPropertyValue('--ink').trim();
+    const n = st.peaks.length, bw = w / n, done = st.dur ? st.doneSec / st.dur : 0;
+    for (let i = 0; i < n; i++) {
+      const bh = Math.max(2, st.peaks[i] * (h - 14));
+      g.fillStyle = (i / n) < done ? acc : wave;
+      g.fillRect(i * bw + bw * 0.15, (h - bh) / 2, Math.max(1, bw * 0.7), bh);
+    }
+    if (audioEl && st.dur) { const x = (audioEl.currentTime / st.dur) * w; g.fillStyle = ink; g.fillRect(x - 1, 0, 2, h); }
+  }
+  window.addEventListener('resize', drawWave);
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawWave); } catch (e) {}
+  $('#wave').addEventListener('click', (e) => {
+    if (!audioEl || !st.dur) return; const r = e.currentTarget.getBoundingClientRect();
+    audioEl.currentTime = Math.max(0, Math.min(st.dur, ((e.clientX - r.left) / r.width) * st.dur)); drawWave(); onTime();
+  });
+  function syncPlay() { const playing = audioEl && !audioEl.paused && !audioEl.ended; $('#playIcon').hidden = playing; $('#pauseIcon').hidden = !playing; $('#play').setAttribute('aria-label', playing ? 'Pause' : 'Play'); }
+  function onTime() {
+    if (!audioEl) return;
+    $('#time').textContent = fmt(audioEl.currentTime) + ' / ' + fmt(st.dur);
+    drawWave();
+    const t = audioEl.currentTime; let act = -1;
+    for (let i = 0; i < st.segs.length; i++) { if (st.segs[i].start <= t + 0.05) act = i; else break; }
+    if (act >= 0 && st.segs[act].end + 0.6 < t) act = -1;
+    document.querySelectorAll('.seg-row.active').forEach((r) => r.classList.remove('active'));
+    if (act >= 0) { const r = $('#segs').children[act]; if (r) r.classList.add('active'); }
+  }
+  $('#play').addEventListener('click', () => { if (!audioEl) return; if (audioEl.paused) audioEl.play().catch(() => {}); else audioEl.pause(); });
+  $('#removeFile').addEventListener('click', removeFile);
+
+  /* ---------- input: pick, drop, record ---------- */
+  (function bars() {
+    const box = $('#bars'); const hs = [18, 30, 44, 24, 52, 36, 20, 46, 32, 54, 26, 40, 16, 48, 34, 22, 50, 28, 42, 20, 38, 54, 24, 34, 46, 18, 30, 44, 22, 36, 28, 18];
+    hs.forEach((h, i) => { const s = document.createElement('span'); s.style.setProperty('--h', h + 'px'); s.style.setProperty('--d', (i * -0.17).toFixed(2) + 's'); box.appendChild(s); });
+  })();
+  $('#pick').addEventListener('click', () => $('#file').click());
+  $('#file').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) loadBlob(f, f.name); e.target.value = ''; });
+  const dz = $('#drop');
+  ['dragenter', 'dragover'].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); if (!st.running && !$('#dropWrap').hidden) dz.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); if (ev === 'drop' || e.target === document.documentElement || !e.relatedTarget) dz.classList.remove('over'); }));
+  document.addEventListener('drop', (e) => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f && !st.running) loadBlob(f, f.name); });
+
+  async function toggleRecord() {
+    if (st.recorder) { st.recorder.stop(); return; }
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || typeof MediaRecorder === 'undefined') { say('Recording is not available in this browser. Choose a file instead.', true); return; }
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+    catch (e) { say((e && e.name === 'NotAllowedError') ? 'Microphone access was blocked. Allow it in the address bar, or choose a file instead.' : 'No microphone could be opened.', true); return; }
+    const chunks = [], rec = new MediaRecorder(stream), t0 = Date.now();
+    st.recStream = stream; st.recorder = rec;
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = async () => {
+      clearInterval(st.recTimer); stream.getTracks().forEach((t) => t.stop());
+      st.recorder = null; st.recStream = null; $('#recBtn').classList.remove('live'); $('#recText').textContent = 'Record';
+      const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+      if (!chunks.length) { say('Nothing was recorded.', true); return; }
+      // Keep the playable copy as a plain WAV so seeking works everywhere.
+      try {
+        const audio = await decodeToMono16k(await blob.arrayBuffer());
+        await loadBlob(blob, 'Recording ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), wavBlob(audio));
+      } catch (e) { say('The recording could not be read.', true); }
+    };
+    rec.start(1000);
+    $('#recBtn').classList.add('live');
+    const tick = () => { $('#recText').textContent = 'Stop · ' + fmt((Date.now() - t0) / 1000); };
+    tick(); st.recTimer = setInterval(tick, 500);
+    say('Recording… press Stop when you are done.');
+  }
+  $('#recBtn').addEventListener('click', toggleRecord);
+
+  /* ---------- options ---------- */
+  (function langs() {
+    const sel = $('#lang'); const add = (parent, idx) => { const o = document.createElement('option'); o.value = idx; o.textContent = LANGS[idx][1]; parent.appendChild(o); };
+    const g1 = document.createElement('optgroup'); g1.label = 'Popular in India';
+    INDIA.forEach((c) => add(g1, LANGS.findIndex((l) => l[0] === c))); sel.appendChild(g1);
+    const g2 = document.createElement('optgroup'); g2.label = 'All languages';
+    LANGS.map((l, i) => i).sort((a, b) => LANGS[a][1].localeCompare(LANGS[b][1])).forEach((i) => add(g2, i)); sel.appendChild(g2);
+  })();
+  $('#lang').addEventListener('change', (e) => { st.langIdx = parseInt(e.target.value, 10); });
+  document.querySelectorAll('#modelSeg button').forEach((b) => b.addEventListener('click', () => {
+    if (st.running) return;
+    st.modelKey = b.dataset.k; document.querySelectorAll('#modelSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    ensureEngine().catch(() => {});
+  }));
+  document.querySelectorAll('#taskSeg button').forEach((b) => b.addEventListener('click', () => {
+    if (st.running) return;
+    st.task = b.dataset.k; document.querySelectorAll('#taskSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+
+  /* ---------- transcript view ---------- */
+  function rowFor(seg) {
+    const r = document.createElement('div'); r.className = 'seg-row';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'seg-time'; b.textContent = fmt(seg.start); b.title = 'Play from here';
+    b.addEventListener('click', () => { if (audioEl) { audioEl.currentTime = seg.start; audioEl.play().catch(() => {}); } });
+    const t = document.createElement('div'); t.className = 'seg-text'; t.contentEditable = 'true'; t.spellcheck = false; t.setAttribute('role', 'textbox'); t.setAttribute('aria-label', 'Transcript line at ' + fmt(seg.start));
+    t.dir = RTL[(LANGS[st.detected] || [])[0]] ? 'rtl' : 'auto'; t.textContent = seg.text;
+    t.addEventListener('input', () => { seg.text = t.textContent; });
+    t.addEventListener('paste', (e) => { e.preventDefault(); const tx = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, tx); });
+    r.append(b, t); return r;
+  }
+  function renderSegs() {
+    const box = $('#segs'); box.textContent = '';
+    st.segs.forEach((s) => box.appendChild(rowFor(s)));
+    $('#empty').hidden = st.segs.length > 0 || st.running;
+    updateMeta();
+  }
+  function appendSegs(list) {
+    const box = $('#segs');
+    list.forEach((s) => { st.segs.push(s); box.appendChild(rowFor(s)); });
+    $('#empty').hidden = true; updateMeta(); updateActions();
+  }
+  function wordCount() { return st.segs.reduce((n, s) => n + (s.text.trim() ? s.text.trim().split(/\s+/).length : 0), 0); }
+  function updateMeta(extra) {
+    const bits = [];
+    if (st.detected >= 0) bits.push(LANGS[st.detected][1] + (st.langIdx < 0 ? ' (detected)' : ''));
+    if (st.segs.length) bits.push(wordCount().toLocaleString() + ' words');
+    if (extra) bits.push(extra);
+    $('#paperMeta').textContent = bits.join(' · ');
+  }
+  function updateActions() {
+    const has = st.segs.length > 0;
+    ['#copy', '#dlTxt', '#dlSrt', '#dlVtt', '#dlJson'].forEach((s) => { $(s).disabled = !has; });
+  }
+  $('#tsToggle').addEventListener('change', (e) => { $('#segs').classList.toggle('nots', !e.target.checked); });
+
+  function plainText() { return st.segs.map((s) => s.text.trim()).filter(Boolean).join('\n'); }
+  function download(name, text, type) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: type + ';charset=utf-8' })); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  const base = () => (st.name || 'transcript').replace(/\.[^.]+$/, '').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-') || 'transcript';
+  $('#copy').addEventListener('click', async () => {
+    const t = plainText();
+    try { await navigator.clipboard.writeText(t); say('Transcript copied.'); }
+    catch (e) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); say('Transcript copied.'); } catch (e2) { say('Could not copy. Select the text and copy it by hand.', true); } ta.remove(); }
+  });
+  $('#dlTxt').addEventListener('click', () => download(base() + '.txt', plainText() + '\n', 'text/plain'));
+  $('#dlSrt').addEventListener('click', () => download(base() + '.srt', st.segs.filter((s) => s.text.trim()).map((s, i) => (i + 1) + '\n' + stamp(s.start, ',') + ' --> ' + stamp(Math.max(s.end, s.start + 0.5), ',') + '\n' + s.text.trim() + '\n').join('\n'), 'application/x-subrip'));
+  $('#dlVtt').addEventListener('click', () => download(base() + '.vtt', 'WEBVTT\n\n' + st.segs.filter((s) => s.text.trim()).map((s) => stamp(s.start, '.') + ' --> ' + stamp(Math.max(s.end, s.start + 0.5), '.') + '\n' + s.text.trim() + '\n').join('\n'), 'text/vtt'));
+  $('#dlJson').addEventListener('click', () => download(base() + '.json', JSON.stringify({ language: st.detected >= 0 ? LANGS[st.detected][0] : null, model: 'whisper-' + st.modelKey, task: st.task, duration: Math.round(st.dur * 100) / 100, segments: st.segs.map((s) => ({ start: Math.round(s.start * 100) / 100, end: Math.round(s.end * 100) / 100, text: s.text.trim() })) }, null, 2), 'application/json'));
+
+  /* ---------- running a transcription ---------- */
+  function busy(on) {
+    st.running = on;
+    $('#go').hidden = on; $('#stop').hidden = !on;
+    $('#prog').hidden = !on && st.doneSec <= 0;
+    ['#pick', '#recBtn', '#removeFile', '#lang'].forEach((q) => { $(q).disabled = on; });
+    document.querySelectorAll('#modelSeg button, #taskSeg button').forEach((b) => { b.disabled = on; b.style.opacity = on ? 0.6 : ''; });
+  }
+  let runStart = 0;
+  async function transcribe() {
+    if (!st.audio || st.running) return;
+    st.segs = []; st.detected = st.langIdx >= 0 ? st.langIdx : -1; st.doneSec = 0; renderSegs();
+    busy(true); $('#prog').hidden = false; $('#progBar').style.width = '0%'; $('#progText').textContent = 'Preparing…'; say('');
+    let eng;
+    try {
+      const chip = !engine || engine.key !== st.modelKey || !engine.worker;
+      if (chip) { $('#loadRow').hidden = false; }
+      eng = await ensureEngine();
+    } catch (e) {
+      busy(false); $('#prog').hidden = true; $('#loadRow').hidden = true;
+      say('The model could not start: ' + explain(e) + ' Press Details for a report you can copy.', true); return;
+    }
+    $('#loadRow').hidden = true;
+    runStart = performance.now();
+    const copy = st.audio.slice();
+    eng.worker.postMessage({ type: 'run', audio: copy, lang: st.langIdx, task: st.task }, [copy.buffer]);
+    $('#progText').textContent = 'Listening…';
+  }
+  function onWorker(e) {
+    const m = e.data;
+    if (m.type === 'lang') { st.detected = m.index; updateMeta(); }
+    else if (m.type === 'progress') {
+      if (m.lang >= 0 && st.detected !== m.lang) st.detected = m.lang;
+      if (m.segs.length) appendSegs(m.segs); else updateMeta();
+      st.doneSec = m.done;
+      const pct = Math.min(100, (100 * m.done) / m.total), speed = m.done / Math.max(0.1, m.ms / 1000), left = (m.total - m.done) / Math.max(0.05, speed);
+      $('#progBar').style.width = pct.toFixed(1) + '%';
+      $('#progText').textContent = 'Transcribed ' + fmt(m.done) + ' of ' + fmt(m.total) + ' · ' + speed.toFixed(1) + '× real time' + (left > 2 ? ' · about ' + fmt(left) + ' left' : '');
+      drawWave();
+    } else if (m.type === 'done' || m.type === 'cancelled') {
+      const took = m.ms / 1000;
+      if (m.lang >= 0) st.detected = m.lang;
+      busy(false); $('#prog').hidden = true;
+      if (m.type === 'done') st.doneSec = st.dur;
+      renderSegs(); updateMeta('took ' + fmt(took)); updateActions(); drawWave();
+      say(m.type === 'cancelled' ? 'Stopped. What was transcribed so far is kept.' : (st.segs.length ? 'Done. Click any line to correct it.' : 'No speech was found in this recording.'));
+    } else if (m.type === 'error') {
+      busy(false); $('#prog').hidden = true; say('Something went wrong while transcribing: ' + m.message, true); note('worker error: ' + m.message); refreshReport();
+    }
+  }
+  $('#go').addEventListener('click', transcribe);
+  $('#stop').addEventListener('click', () => { if (engine && engine.worker) { engine.worker.postMessage({ type: 'cancel' }); $('#progText').textContent = 'Stopping…'; } });
+
+  /* ---------- model report ---------- */
+  const reportEl = $('#report'), reportText = $('#reportText');
+  let fileRows = null;
+  function buildReport() {
+    const L = ['Verbatim model report', 'Time: ' + new Date().toISOString(), 'Page: ' + location.origin + location.pathname, 'Build: ' + MF.v, 'Browser: ' + navigator.userAgent];
+    L.push('Secure context: ' + yn(self.isSecureContext) + '   Cross-origin isolated: ' + yn(self.crossOriginIsolated));
+    L.push('WebAssembly: ' + yn(typeof WebAssembly === 'object') + '   SIMD: ' + yn(SIMD_OK) + '   Workers: ' + yn(typeof Worker !== 'undefined'));
+    L.push('Built-in unpack: ' + yn(typeof DecompressionStream !== 'undefined') + '   Checksums: ' + yn(!!(self.crypto && crypto.subtle)) + '   Cache storage: ' + yn(!!self.caches));
+    L.push('Audio decoding: ' + yn(!!(window.AudioContext || window.webkitAudioContext)) + '   Recording: ' + yn(typeof MediaRecorder !== 'undefined'));
+    L.push('Device memory (GB): ' + (navigator.deviceMemory || 'unknown') + '   Model chosen: ' + st.modelKey);
+    L.push('Model state: ' + $('#model').dataset.state);
+    if (lastError) L.push('Error: ' + lastError);
+    if (blocked.length) L.push('Security policy blocks: ' + blocked.join('; '));
+    L.push('', 'Events:'); events.slice(-40).forEach((x) => L.push('  ' + x));
+    if (fileRows) { L.push('', 'File check:'); fileRows.forEach((x) => L.push('  ' + x)); }
+    return L.join('\n');
+  }
+  function refreshReport() { if (!reportEl.hidden) reportText.value = buildReport(); }
+  async function checkFiles() {
+    const spec = MF.models[st.modelKey], parts = [];
+    [MF.vendor.ort, MF.vendor.mjs, MF.vendor.wasm, MF.tokens, spec.enc, spec.dec].forEach((s) => s.parts.forEach((x) => parts.push(x)));
+    fileRows = []; $('#reportCheck').disabled = true;
+    for (const part of parts) {
+      const t0 = performance.now(); let row;
+      try {
+        const res = await fetch(new URL(part.p + '?v=' + MF.v + '&check=' + Date.now(), document.baseURI), { cache: 'no-store' });
+        if (!res.ok) row = part.p + '   HTTP ' + res.status + '   PROBLEM: file not served';
+        else { const u8 = new Uint8Array(await res.arrayBuffer()); const bad = await verify(part, u8); row = part.p + '   HTTP 200   ' + u8.length + ' bytes   ' + (bad ? 'PROBLEM: ' + bad : 'ok'); }
+      } catch (e) { row = part.p + '   PROBLEM: ' + ((e && e.message) || 'request failed'); }
+      fileRows.push(row + '   ' + Math.round(performance.now() - t0) + ' ms'); refreshReport();
+    }
+    $('#reportCheck').disabled = false;
+  }
+  $('#modelDetails').addEventListener('click', () => { reportEl.hidden = !reportEl.hidden; refreshReport(); });
+  $('#reportClose').addEventListener('click', () => { reportEl.hidden = true; });
+  $('#reportCheck').addEventListener('click', checkFiles);
+  $('#reportCopy').addEventListener('click', async () => {
+    reportText.value = buildReport();
+    try { await navigator.clipboard.writeText(reportText.value); say('Report copied.'); }
+    catch (e) { reportText.focus(); reportText.select(); try { document.execCommand('copy'); say('Report copied.'); } catch (e2) { say('Select the report text and copy it by hand.'); } }
+  });
+  $('#modelRetry').addEventListener('click', () => { ensureEngine().catch(() => {}); });
+
+  if (location.protocol === 'file:') { setModel('error', 'Open this from a website, not as a file'); say('Browsers block the model download when the page is opened straight from a folder (file://). Upload the whole folder to your Netlify site, or run "python -m http.server" inside the folder and open http://localhost:8000.', true); }
+  else if (SIMD_OK) { say('Getting the model ready. This is a one-time download.'); ensureEngine().catch(() => {}); }
+  else say('This browser is too old to run the model. Update Chrome, Edge, Firefox or Safari 16.4 or newer.', true);
+  void(0 &&  'This browser is too old to run the model. Update Chrome, Edge, Firefox or Safari 16.4 or newer.', !SIMD_OK);
+})();
+
+</script>
+</body>
+</html>
