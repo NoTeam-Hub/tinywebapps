@@ -150,7 +150,8 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
 .legal h2{font:400 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
 .legal p{color:var(--dim);font-size:13px;line-height:1.6}
 .legal-base{display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:space-between;align-items:flex-start;padding-top:18px;border-top:1px solid var(--line)}
-.legal-text{flex:1 1 520px;display:grid;gap:8px}
+.legal-text{flex:1 1 520px;display:grid;gap:8px;min-width:0}
+.legal-grid p,.legal-text p{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
 .legal a{color:var(--mut);text-underline-offset:3px}.legal a:hover{color:var(--ink)}
 .legal .credit{color:var(--mut)}
 .licenses{margin-top:18px;border:1px solid var(--line);border-radius:14px}

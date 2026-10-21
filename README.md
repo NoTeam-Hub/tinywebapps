@@ -4,10 +4,11 @@
 
 Live at **https://tinywebapps.in**
 
-Tiny Web Apps is one small website that hosts five tools, plus a hub page that links them together. Every tool does its work on the visitor's own device, so photos, recordings, videos and resumes are never sent to a server.
+Tiny Web Apps is one small website that hosts six tools, plus a hub page that links them together. Every tool does its work on the visitor's own device, so photos, recordings, videos and resumes are never sent to a server.
 
 | Tool | Address | What it does |
 |---|---|---|
+| **Upright** | [/upright/](https://tinywebapps.in/upright/) | A vertical video editor for Reels, Shorts and TikTok. Drop clips and photos, trim and split, add text, emoji and captions, add music with beat sync, and export MP4 or WebM. |
 | **Clearcut** | [/clearcut/](https://tinywebapps.in/clearcut/) | Removes the background from a photo and exports a transparent PNG. A precision brush lets you refine the edges. |
 | **Verbatim** | [/verbatim/](https://tinywebapps.in/verbatim/) | Turns speech into text. Add an audio or video file, or record with the microphone, and copy the transcript. |
 | **Stillreel** | [/stillreel/](https://tinywebapps.in/stillreel/) | Builds a video from photos and words: text scenes, a 3D depth effect on photos, music, and export to MP4 or WebM. |
@@ -15,6 +16,8 @@ Tiny Web Apps is one small website that hosts five tools, plus a hub page that l
 | **Polish** | [/enhance/](https://tinywebapps.in/enhance/) | Drop a photo and it is enhanced automatically: light, colour, noise and detail are fixed with no prompts. Then pick one of 12 filters, compare before and after, and download as JPG or PNG. |
 
 ## How each tool works
+
+**Upright.** No model files. It is built on standard browser features: Canvas draws each frame, Web Audio mixes clip audio and music and finds beats, and MediaRecorder records the result to MP4 (where the browser supports it) or WebM. Export runs in real time, so a 30-second reel takes 30 seconds and the tab must stay open.
 
 **Clearcut.** A segmentation model (IS-Net, from the DIS project) runs in the browser through WebAssembly. The model is about 47 MB. It loads when the page opens and the browser keeps it afterwards.
 
@@ -31,6 +34,7 @@ Tiny Web Apps is one small website that hosts five tools, plus a hub page that l
 - Files are processed on the visitor's device. The site has no server code and no database.
 - There are no accounts, no tracking scripts and no ads.
 - Polish processes photos entirely on the device, like the other tools.
+- Upright edits and exports video entirely on the device; nothing is uploaded.
 - The one exception is The Tailorly's optional AI boost, which sends the text to Anthropic only when the visitor adds a key and presses an AI button.
 - Each tool stores its cached model and settings in the visitor's own browser.
 
@@ -45,6 +49,7 @@ verbatim/       Verbatim
 stillreel/      Stillreel
 tailorly/       The Tailorly
 enhance/        Polish
+upright/        Upright
 CNAME           the custom domain (tinywebapps.in)
 .nojekyll       tells GitHub Pages to publish the files as they are
 ```
@@ -73,7 +78,7 @@ The tools use these open-source parts. The full licence texts are in each tool's
 - MiDaS depth model, MIT
 - ONNX Runtime Web, MIT
 - PDF.js, Apache-2.0, and fflate, MIT (The Tailorly)
-- Fraunces, Instrument Sans and JetBrains Mono typefaces, SIL Open Font License (Polish and The Tailorly)
+- Fraunces, Instrument Sans and JetBrains Mono typefaces, SIL Open Font License (Polish, Upright and The Tailorly)
 
 Images, recordings, videos and resumes that visitors process remain theirs, and no claim is made over them.
 
