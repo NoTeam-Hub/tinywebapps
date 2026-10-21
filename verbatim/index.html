@@ -211,6 +211,8 @@ select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-
 .share-note { min-height: 1.4em; font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; }
 @media (max-width: 880px) { .legal-base { grid-template-columns: minmax(0, 1fr); } .legal-text, .share { grid-column: 1; } .share { justify-self: start; align-items: flex-start; } .share-note { text-align: left; } }
 
+
+.lhs{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}.backlink{font:400 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:inherit;opacity:.62;text-decoration:none;white-space:nowrap}.backlink:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}.backlink:focus-visible{outline:2px solid currentColor;outline-offset:3px;opacity:1}
 </style>
 <link rel="canonical" href="https://tinywebapps.in/verbatim/">
 <meta property="og:type" content="website">
@@ -228,10 +230,10 @@ select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-
 <body>
 <div class="page">
   <header class="top">
-    <div class="brand">
+    <div class="lhs"><a class="backlink" href="../">&larr; tinywebapps.in</a><div class="brand">
       <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 13v6M10.5 8v16M16 4v24M21.5 9v14M27 13v6"/></svg>
       <span>Verbatim</span>
-    </div>
+    </div></div>
     <div class="modelbar">
       <span class="chip" id="model" data-state="idle" role="status"><i></i><span id="modelText">Model not loaded</span></span>
       <button type="button" class="mini strong" id="modelRetry" hidden>Retry</button>

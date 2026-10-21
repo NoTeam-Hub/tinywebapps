@@ -220,6 +220,8 @@ dialog .acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1
 .share-note { min-height: 1.4em; font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; }
 @media (max-width: 880px) { .legal-base { grid-template-columns: minmax(0, 1fr); } .legal-text, .share { grid-column: 1; } .share { justify-self: start; align-items: flex-start; } .share-note { text-align: left; } }
 
+
+.lhs{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}.backlink{font:400 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:inherit;opacity:.62;text-decoration:none;white-space:nowrap}.backlink:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}.backlink:focus-visible{outline:2px solid currentColor;outline-offset:3px;opacity:1}
 </style>
 <link rel="canonical" href="https://tinywebapps.in/tailorly/">
 <meta property="og:type" content="website">
@@ -237,10 +239,10 @@ dialog .acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1
 <body>
 <div class="page">
   <header class="top">
-    <div class="brand">
+    <div class="lhs"><a class="backlink" href="../">&larr; tinywebapps.in</a><div class="brand">
       <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3.5h11l6 6v19H8z"/><path d="M19 3.5v6h6"/><path d="M12 15h8" stroke-dasharray="2.6 2.8"/><path d="M12 19.5h8" stroke-dasharray="2.6 2.8"/><path d="M12 24h5" stroke="var(--acc)" stroke-width="2.8"/></svg>
       The Tailorly
-    </div>
+    </div></div>
     <div class="top-r">
       <span class="pill"><i></i><span id="privNote">On your device · nothing uploaded</span></span>
       <button type="button" class="ghost" id="aiBtn" data-on="0">AI boost: off</button>

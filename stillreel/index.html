@@ -18,6 +18,8 @@
 @font-face { font-family: "Instrument Serif"; font-style: italic; font-weight: 400; font-display: swap; src: url(fonts/instrument-italic-5a51946dfffa.woff2) format("woff2"); }
 @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/mono-400-14425ba9c695.woff2) format("woff2"); }
 @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url(fonts/mono-500-cb182feeed4d.woff2) format("woff2"); }
+
+.lhs{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}.backlink{font:400 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:inherit;opacity:.62;text-decoration:none;white-space:nowrap}.backlink:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}.backlink:focus-visible{outline:2px solid currentColor;outline-offset:3px;opacity:1}
 </style>
 <style>
 :root {
@@ -207,10 +209,10 @@ dialog .foot { display: flex; justify-content: space-between; gap: 10px; margin-
 <body>
 <div class="page">
   <header class="top">
-    <div class="brand">
+    <div class="lhs"><a class="backlink" href="../">&larr; tinywebapps.in</a><div class="brand">
       <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="16" cy="16" r="12.5"/><circle cx="16" cy="9" r="2.1" fill="currentColor" stroke="none"/><circle cx="22.1" cy="19.5" r="2.1" fill="currentColor" stroke="none"/><circle cx="9.9" cy="19.5" r="2.1" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.6" fill="currentColor" stroke="none"/></svg>
       <span>Stillreel</span>
-    </div>
+    </div></div>
     <div class="modelbar">
       <span class="chip" id="model" data-state="idle" role="status"><i></i><span id="modelText">3D depth not loaded</span></span>
       <button type="button" class="mini strong" id="modelRetry" hidden>Retry</button>

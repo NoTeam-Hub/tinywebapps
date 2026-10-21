@@ -17,6 +17,8 @@
 @font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400 600; font-display: swap; src: url(fonts/public-sans.woff2) format("woff2"); }
 @font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/plex-mono-400.woff2) format("woff2"); }
 @font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url(fonts/plex-mono-500.woff2) format("woff2"); }
+
+.lhs{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}.backlink{font:400 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:inherit;opacity:.62;text-decoration:none;white-space:nowrap}.backlink:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}.backlink:focus-visible{outline:2px solid currentColor;outline-offset:3px;opacity:1}
 </style>
 <style>
 /* Layout: a darkroom bench. Wide stage with crop marks on the left, a narrow control rail on the right, stacked on phones.
@@ -266,10 +268,10 @@ button { font: inherit; color: inherit; }
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">
+    <div class="lhs"><a class="backlink" href="../">&larr; tinywebapps.in</a><div class="brand">
       <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="13" cy="13" r="6.5"/><path d="M13 1v8M13 17v8M1 13h8M17 13h8"/></svg>
       Clearcut
-    </div>
+    </div></div>
     <div class="modelbar">
       <span class="chip" id="model" data-state="idle" role="status"><i></i><span id="modelText">Model idle</span></span>
       <button type="button" class="mini strong" id="modelRetry" hidden>Retry</button>
