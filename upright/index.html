@@ -48,7 +48,10 @@ dialog{background:var(--cd);color:var(--fg);border:1px solid var(--bd);border-ra
 
 body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:70vh;background:radial-gradient(60% 60% at 25% 30%,rgba(255,92,168,.20),transparent 70%),radial-gradient(50% 55% at 78% 20%,rgba(255,170,92,.12),transparent 70%);pointer-events:none;z-index:-1}
 @media(max-width:820px){.stage{top:0;z-index:6;background:var(--bg);margin:0 -20px;padding:8px 20px 10px;border-bottom:1px solid var(--bd)}.cw{height:min(32vh,290px)}.stage>.m{display:none}}
-.bar,.intro,#app,.feat,.note{width:100%}main{width:100%}.brand{display:flex;align-items:center;gap:10px}.brand svg{width:26px;height:26px;flex:none}
+.mtabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mtabs button{border-radius:99px;padding:5px 12px;font-size:13px;color:var(--mu)}.mtabs button[aria-selected=true]{background:var(--ac);border-color:var(--ac);color:#0b0c0e;font-weight:600}
+.mlist{display:grid;gap:6px;max-height:300px;overflow:auto;padding-right:2px}.mrow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--bd);border-radius:12px;background:#0b0c0e}.mrow.on{border-color:var(--ac);background:rgba(255,92,168,.08)}
+.mrow .pv{width:36px;height:36px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:12px}.mrow b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mrow span.d{display:block;font:11px var(--mo);color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[hidden]{display:none!important}.bar,.intro,#app,.feat,.note{width:100%}main{width:100%}.brand{display:flex;align-items:center;gap:10px}.brand svg{width:26px;height:26px;flex:none}
 .back:focus-visible,.chip:focus-visible,.lnk:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
 .bar .lhs{display:flex;align-items:center;gap:8px 20px;flex:1;flex-wrap:wrap}
 .chip{margin-left:auto}.chip[data-state=ready] i{background:#5fd39a}.chip.bad i{background:#e5484d}
@@ -104,7 +107,11 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
   <label>Logo opacity<input type="range" min="10" max="100" value="85" oninput="LO=this.value/100"></label>
   <label class="c"><input type="checkbox" checked onchange="fadeOn=this.checked"> Fade in &amp; out</label></div></details>
  <details class="card" open><summary>4 · Music</summary>
-  <div class="row"><label class="btn">♪ Add music<input type="file" accept="audio/*" onchange="setMusic(this.files[0]);this.value=''"></label><button onclick="sync()">Sync photo cuts to beat</button><span id="mn" class="m"></span></div>
+  <div class="mo">Music library · original tracks made for Upright, free to use</div>
+  <div class="mtabs" id="mtabs" role="tablist" aria-label="Music mood"></div>
+  <div id="mlist" class="mlist"></div>
+  <div class="mo" style="margin-top:12px">Or use your own</div>
+  <div class="row"><label class="btn">♪ Add music from device<input type="file" accept="audio/*" onchange="setMusic(this.files[0]);this.value=''"></label><button onclick="sync()">Sync photo cuts to beat</button><button id="mclr" onclick="clearMusic()" hidden>Remove music</button><span id="mn" class="m"></span></div>
   <div class="g"><label>Clip audio<input type="range" min="0" max="1" step=".05" value="1" oninput="vol(0,+this.value)"></label><label>Music volume<input type="range" min="0" max="1" step=".05" value=".8" oninput="vol(1,+this.value)"></label><label>Music starts at (s)<input type="number" step=".5" min="0" value="0" onchange="mo=+this.value"></label></div></details>
  <details class="card" open><summary>5 · Export</summary>
   <div class="row"><button id="eb" class="p" onclick="exportVid()">Export reel</button><button id="xb" onclick="cancelExp()" disabled>Cancel</button><span id="st" class="m">Up to 90 s. Records in real time, so keep this tab open.</span></div>
@@ -116,7 +123,7 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
   <div class="legal-grid">
     <section><h2>Privacy</h2><p>Clips, photos, music and logos are processed in your browser. They are not uploaded to or stored by this site. The page sets no cookies, runs no ads and has no visitor tracking. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
     <section><h2>Terms of use</h2><p>You are responsible for having the right to edit and use every clip, photo, song and logo you process. Results are made in your browser, can be imperfect, and are provided as is, without warranty of any kind. Check each export before you publish it. Copyrighted music may be muted or removed by the platforms you post to.</p></section>
-    <section><h2>Credits</h2><p>Upright is built on standard browser features (Canvas, Web Audio and MediaRecorder) and uses no third-party code or models. Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). Upright is an independent project and is not affiliated with or endorsed by Instagram, Meta, YouTube or TikTok.</p></section>
+    <section><h2>Credits</h2><p>Upright is built on standard browser features (Canvas, Web Audio and MediaRecorder) and uses no third-party code or models. Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The tracks in the Music library are original music made for Upright and are free to use in videos you make with it. Upright is an independent project and is not affiliated with or endorsed by Instagram, Meta, YouTube or TikTok.</p></section>
   </div>
   <div class="legal-base">
     <div class="legal-text">
@@ -430,13 +437,23 @@ function push(c){reveal();cm();clips.push(c);if(ac&&c.t=='v')wire(c.el,vg);sel=c
 function wire(el,n){if(el._w)return;el._w=1;const s=ac.createMediaElementSource(el);if(n===vg){el._g=ac.createGain();s.connect(el._g);el._g.connect(vg)}else s.connect(n)}
 async function audio(){if(!ac){ac=new AudioContext();dest=ac.createMediaStreamDestination();vg=ac.createGain();mg=ac.createGain();vg.gain.value=vv;mg.gain.value=mv;for(const n of[vg,mg]){n.connect(dest);n.connect(ac.destination)}clips.forEach(c=>c.t=='v'&&wire(c.el,vg));if(music)wire(music,mg)}await ac.resume()}
 function vol(k,v){k?mv=v:vv=v;if(ac)(k?mg:vg).gain.value=v}
-async function setMusic(f){if(!f)return;if(music)music.pause();music=new Audio(URL.createObjectURL(f));if(ac)wire(music,mg);$('mn').textContent='Finding beats…';bts=[];
+let curLib=-1,pvA=null,pvI=-1;
+function stopPv(){if(pvA){pvA.pause();pvA=null}pvI=-1;if(window.renderLib)renderLib()}
+async function setMusic(f,o){if(!f)return;stopPv();if(music)music.pause();const url=URL.createObjectURL(f);music=new Audio(url);if(ac)wire(music,mg);bts=[];curLib=o?o.id:-1;$('mclr').hidden=false;
+ if(o){await new Promise(r=>{music.addEventListener('loadedmetadata',r,{once:true});music.addEventListener('error',r,{once:true});music.load()});const d=music.duration||60,bt=60/o.bpm;for(let k=0;k*bt<d;k++)bts.push(+(k*bt).toFixed(3));$('mn').textContent=o.name+' · '+o.bpm+' BPM · exact beats';renderLib();return}
+ $('mn').textContent='Finding beats…';renderLib();
  try{const x=new(window.OfflineAudioContext||webkitOfflineAudioContext)(1,1,44100),b=await x.decodeAudioData(await f.arrayBuffer()),d=b.getChannelData(0),hop=Math.floor(b.sampleRate/50),e=[];for(let i=0;i+hop<d.length;i+=hop){let s=0;for(let j=0;j<hop;j+=4)s+=d[i+j]**2;e.push(s)}
   let last=-9;for(let i=2;i<e.length-2;i++){let a=0;for(let j=Math.max(0,i-25);j<i;j++)a+=e[j];a/=25;if(e[i]>a*1.6&&e[i]>=e[i-1]&&e[i]>=e[i+1]&&i-last>=12){bts.push(i/50);last=i}}$('mn').textContent=f.name+' · '+bts.length+' beats found'}catch(r){$('mn').textContent=f.name+' · beat detection unavailable'}}
-function sync(){if(!bts.length){$('mn').textContent='Add music first to find beats.';return}cm();let a=0;clips.forEach(c=>{if(c.t=='i'){const b=bts.find(x=>x>=a+.9);if(b)c.end=+(b-a).toFixed(2)}a+=len(c)});seek(cur);render()}
+function clearMusic(){stopPv();if(music){music.pause();music=null}bts=[];curLib=-1;$('mn').textContent='';$('mclr').hidden=true;renderLib()}
+const LIB=[{"name": "Sunny Side", "mood": "Upbeat", "desc": "Bright and bouncy pop", "bpm": 118, "dur": 61.0, "file": "music/01-sunny-side.mp3"}, {"name": "Street Hype", "mood": "Upbeat", "desc": "Driving, confident groove", "bpm": 128, "dur": 60.0, "file": "music/02-street-hype.mp3"}, {"name": "Feel Good Funk", "mood": "Upbeat", "desc": "Warm, groovy and playful", "bpm": 108, "dur": 60.0, "file": "music/03-feel-good-funk.mp3"}, {"name": "Slow Morning", "mood": "Chill", "desc": "Soft, sunny and unhurried", "bpm": 80, "dur": 60.0, "file": "music/04-slow-morning.mp3"}, {"name": "Lo-fi Window", "mood": "Chill", "desc": "Dusty beat with warm keys", "bpm": 76, "dur": 60.0, "file": "music/05-lofi-window.mp3"}, {"name": "Late Drive", "mood": "Chill", "desc": "Neon pads for night roads", "bpm": 92, "dur": 60.0, "file": "music/06-late-drive.mp3"}, {"name": "Rising Light", "mood": "Cinematic", "desc": "A slow build to a bright finish", "bpm": 90, "dur": 58.7, "file": "music/07-rising-light.mp3"}, {"name": "Big Moment", "mood": "Cinematic", "desc": "Epic hits and rolling toms", "bpm": 100, "dur": 60.0, "file": "music/08-big-moment.mp3"}, {"name": "Quiet Rain", "mood": "Emotional", "desc": "Gentle piano and rainfall", "bpm": 66, "dur": 58.2, "file": "music/09-quiet-rain.mp3"}, {"name": "Unsaid", "mood": "Emotional", "desc": "Soft pulses and a lingering pad", "bpm": 72, "dur": 60.0, "file": "music/10-unsaid.mp3"}, {"name": "Overdrive", "mood": "Hype", "desc": "Hard kick, heavy bass, no brakes", "bpm": 140, "dur": 60.0, "file": "music/11-overdrive.mp3"}, {"name": "Beat Drop", "mood": "Hype", "desc": "Build-up, riser and a big drop", "bpm": 130, "dur": 59.1, "file": "music/12-beat-drop.mp3"}];let libTab='All';
+function renderLib(){const tabs=['All',...new Set(LIB.map(t=>t.mood))];$('mtabs').innerHTML=tabs.map(m=>`<button role="tab" aria-selected="${m==libTab}" onclick="libTab='${m}';renderLib()">${m}</button>`).join('');
+ $('mlist').innerHTML=LIB.map((t,i)=>({t,i})).filter(x=>libTab=='All'||x.t.mood==libTab).map(({t,i})=>`<div class="mrow ${i==curLib?'on':''}"><button class="pv" onclick="prevLib(${i})" aria-label="${pvI==i?'Stop preview of ':'Preview '}${esc(t.name)}">${pvI==i?'❚❚':'▶'}</button><div><b>${esc(t.name)}</b><span class="d">${t.mood} · ${t.bpm} BPM · ${esc(t.desc)}</span></div>${i==curLib?'<button onclick="clearMusic()">Remove</button>':`<button class="p" onclick="useLib(${i})">Use</button>`}</div>`).join('')}
+function prevLib(i){if(pvI==i){stopPv();return}stopPv();if(playing)pause();pvA=new Audio(LIB[i].file);pvI=i;pvA.addEventListener('ended',stopPv);pvA.play().catch(()=>{stopPv();$('mn').textContent='Preview could not start. Check your connection.'});renderLib()}
+async function useLib(i){const t=LIB[i];stopPv();$('mn').textContent='Loading '+t.name+'…';try{const r=await fetch(t.file);if(!r.ok)throw 0;await setMusic(await r.blob(),{id:i,name:t.name,bpm:t.bpm})}catch(e){$('mn').textContent='Could not load that track. Check your connection.'}}
+function sync(){if(!bts.length){$('mn').textContent='Add music first to find beats.';return}cm();let a=0;clips.forEach(c=>{if(c.t=='i'){const b=bts.map(x=>x-mo).find(x=>x>=a+.9);if(b)c.end=+(b-a).toFixed(2)}a+=len(c)});seek(cur);render()}
 function setLogo(f){if(!f)return;logo=new Image();logo.src=URL.createObjectURL(f)}
 async function toggle(){if(rec)return;playing?pause():play()}
-async function play(){if(!clips.length)return;await audio();if(cur>=total()-.05)cur=0;ci=-1;playing=true;t0=performance.now();ts=cur;if(music&&mo+cur<music.duration){music.currentTime=mo+cur;music.play().catch(()=>{})}$('pb').textContent='❚❚'}
+async function play(){if(!clips.length)return;stopPv();await audio();if(cur>=total()-.05)cur=0;ci=-1;playing=true;t0=performance.now();ts=cur;if(music&&mo+cur<music.duration){music.currentTime=mo+cur;music.play().catch(()=>{})}$('pb').textContent='❚❚'}
 function pause(){playing=false;clips.forEach(c=>c.t=='v'&&c.el.pause());if(music)music.pause();$('pb').textContent='▶'}
 function seek(t){cur=Math.max(0,Math.min(t,total()));ci=-1;if(playing){t0=performance.now();ts=cur;if(music&&mo+cur<music.duration)music.currentTime=mo+cur}}
 function fit(e,w,h,m,k){let s=m=='cover'?Math.max(W/w,H/h):Math.min(W/w,H/h);s*=k;g.drawImage(e,(W-w*s)/2,(H-h*s)/2,w*s,h*s)}
@@ -505,7 +522,7 @@ async function exportVid(){const T=total();if(!T){st('Add a clip first.');return
 function cancelExp(){if(!rec)return;xc=1;pause();rec.stop()}
 addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&e.target.type!='range')return;const k=e.key;
  if(k==' '){e.preventDefault();toggle()}else if(k=='ArrowLeft')seek(cur-(e.shiftKey?1:.1));else if(k=='ArrowRight')seek(cur+(e.shiftKey?1:.1));else if(k=='s'&&!e.ctrlKey)split();else if(k=='Delete'||k=='Backspace')rm();else if((e.ctrlKey||e.metaKey)&&k.toLowerCase()=='z'){e.preventDefault();e.shiftKey?redo():undo()}});
-render();
+render();renderLib();
 
 function reveal(){document.body.classList.add('edit');scrollTo(0,0)}
 function details(){const c=document.createElement('canvas').getContext('2d'),mt=t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t),r=[['Video recording (MediaRecorder)',!!window.MediaRecorder],['MP4 export',mt('video/mp4;codecs=avc1,mp4a.40.2')],['WebM export',mt('video/webm;codecs=vp9,opus')||mt('video/webm')],['Audio engine (Web Audio)',!!window.AudioContext],['Beat finder (audio decoding)',!!(window.OfflineAudioContext||window.webkitOfflineAudioContext)],['Canvas filters (looks)',"filter" in c],['WebCodecs (not required)',!!window.VideoEncoder]];$('ck').innerHTML=r.map(x=>`<div><span class="${x[1]?'y':'n'}">${x[1]?'✓':'✗'}</span> ${x[0]}</div>`).join('');$('dt').showModal()}

@@ -8,7 +8,7 @@ Tiny Web Apps is one small website that hosts six tools, plus a hub page that li
 
 | Tool | Address | What it does |
 |---|---|---|
-| **Upright** | [/upright/](https://tinywebapps.in/upright/) | A vertical video editor for Reels, Shorts and TikTok. Drop clips and photos, trim and split, add text, emoji and captions, add music with beat sync, and export MP4 or WebM. |
+| **Upright** | [/upright/](https://tinywebapps.in/upright/) | A vertical video editor for Reels, Shorts and TikTok. Drop clips and photos, trim and split, add text, emoji and captions, add music (a built-in library of 12 original tracks or your own file) with beat sync, and export MP4 or WebM. |
 | **Clearcut** | [/clearcut/](https://tinywebapps.in/clearcut/) | Removes the background from a photo and exports a transparent PNG. A precision brush lets you refine the edges. |
 | **Verbatim** | [/verbatim/](https://tinywebapps.in/verbatim/) | Turns speech into text. Add an audio or video file, or record with the microphone, and copy the transcript. |
 | **Stillreel** | [/stillreel/](https://tinywebapps.in/stillreel/) | Builds a video from photos and words: text scenes, a 3D depth effect on photos, music, and export to MP4 or WebM. |
@@ -17,7 +17,7 @@ Tiny Web Apps is one small website that hosts six tools, plus a hub page that li
 
 ## How each tool works
 
-**Upright.** No model files. It is built on standard browser features: Canvas draws each frame, Web Audio mixes clip audio and music and finds beats, and MediaRecorder records the result to MP4 (where the browser supports it) or WebM. Export runs in real time, so a 30-second reel takes 30 seconds and the tab must stay open.
+**Upright.** No model files. It is built on standard browser features: Canvas draws each frame, Web Audio mixes clip audio and music and finds beats (the 12 library tracks in `upright/music/` are original compositions made for this site, with exact beat times from their tempo), and MediaRecorder records the result to MP4 (where the browser supports it) or WebM. Export runs in real time, so a 30-second reel takes 30 seconds and the tab must stay open.
 
 **Clearcut.** A segmentation model (IS-Net, from the DIS project) runs in the browser through WebAssembly. The model is about 47 MB. It loads when the page opens and the browser keeps it afterwards.
 
