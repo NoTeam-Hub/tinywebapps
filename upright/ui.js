@@ -24,12 +24,12 @@
       } catch (e) { say('Could not open ' + f.name + '. ' + (e && e.message || ''), true); }
     }
     if (music) await U.setMusicFile(music);
-    if (n) { S.clip = U.P.clips.length - 1; U.changed(true); U.fitPreview(); }
+    if (n) { S.clip = U.clipIndexAt(U.view.t); U.changed(true); U.fitPreview(); }
     if (n && U.P.clips.length === n) U.seek(0);
   };
   UI.sample = async () => {
-    const mk = (a, b, label) => new Promise((r) => { const c = document.createElement('canvas'); c.width = 720; c.height = 1280; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 720, 1280); gr.addColorStop(0, a); gr.addColorStop(1, b); g.fillStyle = gr; g.fillRect(0, 0, 720, 1280); g.fillStyle = 'rgba(255,255,255,.9)'; g.font = '700 120px sans-serif'; g.textAlign = 'center'; g.fillText(label, 360, 660); c.toBlob((bl) => r(new File([bl], label + '.png', { type: 'image/png' })), 'image/png'); });
-    await UI.addFiles([await mk('#ff5ca8', '#ffaa5c', 'One'), await mk('#25f4ee', '#3a2bd9', 'Two'), await mk('#7be495', '#0f4d3a', 'Three')]);
+    try { const fs = []; for (const n of ['friends-sunset', 'friends-field', 'friends-park']) { const r = await fetch('sample/' + n + '.jpg'); if (!r.ok) throw 0; fs.push(new File([await r.blob()], n + '.jpg', { type: 'image/jpeg' })); } await UI.addFiles(fs); }
+    catch (e) { say('Could not load the sample photos. Check your connection.', true); }
   };
   /* ---------------- stage: handles & gestures ---------------- */
   const hud = () => $('hud');
@@ -123,7 +123,7 @@
       if (ob) { sc.setPointerCapture(pid); const o = U.P.overlays.find((q) => q.id === ob.dataset.o); const was = S.ov === o.id; S.ov = o.id; if (o.type === 'caps' || true) { U.snap(); st = { k: 'omove', o, s0: o.start || 0, e0: o.end == null ? U.total() : o.end, x0, moved: false, was }; } UI.syncPanels(); renderTL(); return; }
       if (vb) { sc.setPointerCapture(pid); const v = U.P.voice[+vb.dataset.v]; U.snap(); st = { k: 'vmove', v, s0: v.start, x0 }; return; }
       if (mb) { sc.setPointerCapture(pid); const m = U.P.music; U.snap(); st = { k: 'mmove', m, a0: m.at || 0, x0 }; return; }
-      if (blk) { const i = +blk.dataset.i; if (S.clip !== i) { S.clip = i; UI.syncPanels(); renderTL(); U.seek(tAt(ev)); } else { U.seek(tAt(ev)); sc.setPointerCapture(pid); st = { k: 'reorder', i, x0, pre: true, y0: ev.clientY }; } return; }
+      if (blk) { const i = +blk.dataset.i; if (S.clip !== i) { S.clip = i; U.seek(tAt(ev)); S.clip = i; UI.syncPanels(); renderTL(); } else { U.seek(tAt(ev)); S.clip = i; sc.setPointerCapture(pid); st = { k: 'reorder', i, x0, pre: true, y0: ev.clientY }; } return; }
       if (ph || rl || t.closest('.trk') || t.id === 'tlin') { sc.setPointerCapture(pid); st = { k: 'scrub' }; U.seek(tAt(ev)); }
     });
     sc.addEventListener('pointermove', (ev) => {
@@ -430,7 +430,7 @@
   UI.init = () => {
     const cv = $('cv'); U.initRenderer(cv); setAspect(); U.fitPreview(); bindStage(); bindTL(); bindPanel(); tabsBar();
     U.on('change', (d) => { if (d.structural) { if (S.clip >= U.P.clips.length) S.clip = U.P.clips.length - 1; if (S.clip < 0 && U.P.clips.length) S.clip = 0; } tlSched(); drawSel(); if (d.structural) { UI.syncPanels(); } });
-    U.on('time', () => { movePH(); drawSel(); });
+    U.on('time', () => { movePH(); drawSel(); if (!U.P.clips.length) return; const i = U.clipIndexAt(U.view.t); if (i !== S.clip) { S.clip = i; if (!drag) { UI.syncPanels(); tlSched(); } } });
     U.on('frame', () => { drawSel(); });
     U.on('play', (p) => { $('pb').textContent = p ? '❚❚' : '▶'; $('pb').setAttribute('aria-label', p ? 'Pause' : 'Play'); if (p) UI.stopPv(); });
     U.on('media', () => tlSched()); U.on('thumbs', () => tlSched()); U.on('music', () => { tlSched(); if (S.tab === 'audio' && !UI._busy) UI.syncPanels(); });
