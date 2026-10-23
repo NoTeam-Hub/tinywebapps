@@ -3,8 +3,8 @@
 <script>if(!/\/$|\.html?$/.test(location.pathname))location.replace(location.pathname+"/"+location.search+location.hash);</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Upright: free, private vertical video editor for Reels and Shorts</title>
-<meta name="description" content="Drop your clips and make a vertical reel. Upright cuts, captions and scores videos on your device. Free, no sign-up, nothing is uploaded.">
+<title>Upright: free vertical video editor with timeline, captions and auto reel</title>
+<meta name="description" content="A free vertical video editor for Reels, Shorts and TikTok: timeline, 22 looks, speed ramps, auto captions, voiceover and one-tap Auto reel. Runs on your device, nothing is uploaded.">
 <meta name="theme-color" content="#0b0c0e">
 <link rel="canonical" href="https://tinywebapps.in/upright/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -12,10 +12,10 @@
 <link rel="apple-touch-icon" href="brand/apple-touch-icon-180.png">
 <link rel="manifest" href="site.webmanifest">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Tiny Web Apps">
-<meta property="og:title" content="Upright: free, private vertical video editor"><meta property="og:description" content="Drop your clips. Cut, caption and score them on your device. Nothing is uploaded.">
+<meta property="og:title" content="Upright: free, private vertical video editor"><meta property="og:description" content="Timeline, looks, auto captions and one-tap Auto reel, all on your device. Nothing is uploaded.">
 <meta property="og:url" content="https://tinywebapps.in/upright/"><meta property="og:image" content="https://tinywebapps.in/og-image.png">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Upright: free, private vertical video editor"><meta name="twitter:description" content="Drop your clips. Cut, caption and score them on your device. Nothing is uploaded."><meta name="twitter:image" content="https://tinywebapps.in/og-image.png">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Upright", "url": "https://tinywebapps.in/upright/", "description": "Drop your clips and make a vertical reel. Upright cuts, captions and scores videos on your device. Free, no sign-up, nothing is uploaded.", "applicationCategory": "Video editing", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "isPartOf": {"@type": "WebSite", "name": "Tiny Web Apps", "url": "https://tinywebapps.in/"}}</script>
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Upright: free, private vertical video editor"><meta name="twitter:description" content="Timeline, looks, auto captions and one-tap Auto reel, all on your device. Nothing is uploaded."><meta name="twitter:image" content="https://tinywebapps.in/og-image.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Upright", "url": "https://tinywebapps.in/upright/", "description": "A free vertical video editor for Reels, Shorts and TikTok: timeline, 22 looks, speed ramps, auto captions, voiceover and one-tap Auto reel. Runs on your device, nothing is uploaded.", "applicationCategory": "Video editing", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "isPartOf": {"@type": "WebSite", "name": "Tiny Web Apps", "url": "https://tinywebapps.in/"}}</script>
 <style>
 @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces.woff2) format("woff2")}
 @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-i.woff2) format("woff2")}
@@ -75,55 +75,89 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
 .snote{font:400 12px var(--mono);color:var(--acc);min-width:90px}
 @media(max-width:820px){.legal-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---- Upright v2 ---- */
+.edit .feat,.edit .note{display:none}
+#app{max-width:1280px}
+.ws{display:grid;grid-template-columns:minmax(260px,400px) minmax(0,1fr);grid-template-areas:"stage side" "tl tl";gap:14px 16px;align-items:start}
+.stage{grid-area:stage;position:sticky;top:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.side{grid-area:side;min-width:0}.tlwrap{grid-area:tl;min-width:0}
+@media(max-width:900px){.ws{grid-template-columns:1fr;grid-template-areas:"stage" "tl" "side"}.stage{top:0;z-index:20;background:var(--bg);margin:0 -20px;padding:8px 20px 8px;border-bottom:1px solid var(--bd)}.stage>.m{display:none}}
+.cw{--ar:9/16;--arn:.5625;position:relative;width:min(100%,calc(min(66vh,600px)*var(--arn)));aspect-ratio:var(--ar);height:auto;background:#000;border:1px solid var(--bd);border-radius:16px;overflow:hidden;touch-action:none}
+@media(max-width:900px){.cw{width:min(100%,calc(min(34vh,300px)*var(--arn)))}}
+#hud{position:absolute;inset:0;touch-action:none;cursor:grab}
+#selbox{position:absolute;border:1.5px solid var(--ac);box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none}
+.hnd{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--ac);border:2px solid #fff;pointer-events:auto;touch-action:none;display:grid;place-items:center;font:700 13px var(--sa);color:#0b0c0e;font-style:normal}
+.hnd.hScale{right:-11px;bottom:-11px;cursor:nwse-resize}.hnd.hRot{left:50%;top:-34px;margin-left:-11px;cursor:grab}.hnd.hDel{left:-11px;top:-11px;background:#fff;cursor:pointer}
+.hRot::after{content:"";position:absolute;left:50%;top:22px;width:1.5px;height:12px;background:var(--ac)}
+.gl{position:absolute;background:rgba(255,92,168,.8);pointer-events:none}.gx{left:50%;top:0;bottom:0;width:1px}.gy{top:50%;left:0;right:0;height:1px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border-radius:99px;padding:6px 14px;font-size:14px;color:var(--mu)}.tabs button[aria-selected=true]{background:var(--ac);border-color:var(--ac);color:#0b0c0e;font-weight:600}
+.panel{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:14px 16px;min-height:200px;display:grid;gap:10px;align-content:start}
+.panel .mo{margin-top:6px}.panel .m{color:var(--mu);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button,.ol{border-radius:99px;padding:5px 12px;font-size:13px}.chips button.on,.ol.on{background:rgba(255,92,168,.16);border-color:var(--ac);color:var(--ac)}
+.sl{display:grid;gap:3px;font:11px var(--mo);color:var(--mu);text-transform:uppercase;letter-spacing:.04em;position:relative}.sl .v{position:absolute;right:0;top:0;color:var(--fg)}.sl input[type=range]{width:100%}.sl select,.sl input[type=number]{width:100%;text-transform:none;font:14px var(--sa)}
+.sl input[type=color]{width:100%;height:32px;padding:2px;border-radius:8px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px}
+.ck2{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--fg)}
+.sub{border:1px solid var(--bd);border-radius:12px;padding:8px 12px}.sub>summary{font:500 15px var(--sa)}.sub[open]>summary{margin-bottom:8px}
+.looks{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity}
+.lk{flex:none;display:grid;gap:4px;justify-items:center;width:66px;padding:5px;border-radius:12px;scroll-snap-align:start;font-size:11px;background:transparent}.lk img{border-radius:8px;background:#1a1d22;object-fit:cover;width:54px;height:96px}.lk.on{border-color:var(--ac);color:var(--ac)}
+.emo{display:flex;flex-wrap:wrap;gap:4px}.emo button{font-size:24px;padding:4px 8px;border-radius:10px}
+.olist{display:flex;flex-wrap:wrap;gap:6px}
+.sw{width:30px;height:30px;border-radius:50%;padding:0;border:2px solid var(--bd)}
+.segs{display:grid;gap:6px;max-height:260px;overflow:auto}.seg{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}.seg input{width:100%}.seg button{padding:4px 8px;font:11px var(--mo)}
+.rec{background:#e5484d!important;border-color:#e5484d!important;color:#fff!important}
+.cover{width:90px;min-height:50px;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#000}.cover canvas{width:100%;display:block}
+#out video{width:100%;max-width:260px;border-radius:12px;margin:8px 0}
+/* timeline */
+.tlwrap{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:8px 10px 10px}
+.tlbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.tlbar button{padding:4px 10px;font-size:13px}.tlbar .sp{flex:1}
+#tls{overflow-x:auto;overflow-y:hidden;position:relative;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding-bottom:4px}
+#tlin{position:relative;min-width:100%}#tlc{position:relative}
+.ruler{position:relative;height:18px;border-bottom:1px solid var(--bd);margin-bottom:4px;cursor:pointer}.ruler span{position:absolute;top:2px;font:10px var(--mo);color:var(--mu);padding-left:3px;border-left:1px solid var(--bd);height:14px}
+.trk{position:relative;height:30px;margin-bottom:3px}.trk.main{height:56px}
+.blk{position:absolute;top:0;bottom:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#1a1d22;cursor:pointer;touch-action:pan-x}
+.blk.on{border:2px solid var(--ac);z-index:3}.blk .th{position:absolute;inset:0;display:flex;overflow:hidden}.blk .th i{flex:none;height:100%;background-size:cover;background-position:center}.blk .th i.im{background-size:cover}
+.blk .wv{position:absolute;left:0;bottom:0;height:22px;width:100%;pointer-events:none}
+.blk .lb{position:absolute;left:4px;top:2px;font:10px var(--mo);color:#fff;text-shadow:0 1px 2px #000;pointer-events:none}
+.blk .tr{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,92,168,.6),transparent);pointer-events:none}
+.tH{position:absolute;top:0;bottom:0;width:14px;background:var(--ac);opacity:.9;cursor:ew-resize;touch-action:none}.tH.l{left:0;border-radius:6px 0 0 6px}.tH.r{right:0;border-radius:0 6px 6px 0}
+.obar{position:absolute;top:3px;bottom:3px;border-radius:7px;background:rgba(255,92,168,.25);border:1px solid rgba(255,92,168,.6);font:11px var(--mo);display:flex;align-items:center;padding:0 12px;overflow:hidden;white-space:nowrap;cursor:grab;touch-action:none}.obar.on{background:rgba(255,92,168,.5);border-color:#fff}.obar.caps{background:rgba(120,200,255,.25);border-color:rgba(120,200,255,.6)}.obar.video,.obar.image{background:rgba(255,200,92,.22);border-color:rgba(255,200,92,.6)}
+.oH{position:absolute;top:0;bottom:0;width:10px;cursor:ew-resize}.oH.l{left:0}.oH.r{right:0}.obar.on .oH{background:rgba(255,255,255,.7)}
+.mbar,.vbar{position:absolute;top:3px;bottom:3px;border-radius:7px;overflow:hidden;font:11px var(--mo);display:flex;align-items:center;padding:0 8px;white-space:nowrap;touch-action:none;cursor:grab}
+.mbar{background:rgba(92,200,140,.2);border:1px solid rgba(92,200,140,.5)}.vbar{background:rgba(255,92,92,.2);border:1px solid rgba(255,92,92,.5)}.mbar canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.mbar span,.vbar span{position:relative}
+.beats i{position:absolute;top:4px;bottom:4px;width:1px;background:rgba(255,255,255,.18);pointer-events:none}
+.ph{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.4);z-index:5;cursor:ew-resize;margin-left:-1px}.ph i{position:absolute;left:-7px;top:-2px;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ac)}
+#dropInd{position:absolute;top:18px;height:56px;width:3px;background:var(--ac);z-index:6}
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,30px);background:#1a1d22;border:1px solid var(--bd);border-radius:12px;padding:10px 16px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:92vw}.toast.show{opacity:1;transform:translate(-50%,0)}.toast.bad{border-color:#e5484d}
+.restore{max-width:520px;margin:18px auto 0;border:1px solid var(--ac);background:rgba(255,92,168,.08);border-radius:14px;padding:12px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tr2{display:flex;gap:8px;align-items:center;width:100%}.tr2 input{flex:1}
+.panel .row{margin-top:0}
 </style></head><body>
 <header class="bar"><div class="lhs"><a class="back" href="../">&larr; tinywebapps.in</a><span class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="9" fill="url(#ug)"/><rect x="10.5" y="7" width="11" height="18" rx="2.2" stroke="#210a18" stroke-width="1.6"/><path d="M14.4 12.2v7.6l5-3.8z" fill="#210a18"/><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff5ca8"/><stop offset="1" stop-color="#ffaa5c"/></linearGradient></defs></svg>Upright</span></div><button class="chip" id="chip" onclick="details()" data-state="ready"><i></i><span id="chipt">Runs on your device</span> <u>Details</u></button></header>
 <section class="intro" id="intro"><div class="eyebrow">Vertical video editor</div><h1>Drop your clips. <i>Make it a reel.</i></h1>
-<p class="lead">No timeline to learn first. Drop videos and photos, then cut, caption and score them with simple controls, all on your own device. Export an MP4 or WebM for Reels, Shorts and TikTok.</p>
-<label class="drop" id="drop" tabindex="0"><input type="file" accept="video/*,image/*" multiple onchange="addFiles(this.files);this.value=''"><b>Drop videos or photos here</b>or click to choose. You can also paste images from the clipboard.<span>MP4 · MOV · WEBM · JPG · PNG</span></label>
-<button class="lnk" onclick="sample()">No clips handy? Try a sample</button></section>
-<div id="app">
-<main>
-<section class="stage">
- <div class="cw" id="cw"><canvas id="cv"></canvas><div class="safe" id="sz"></div></div>
- <div class="tr"><button id="pb" class="p" onclick="toggle()">▶</button><input type="range" id="sk" min="0" max="1000" value="0" oninput="seek(this.value/1000*total())"><span id="tm" class="m">0.0 / 0.0s</span></div>
- <div class="row" style="margin:0"><button onclick="undo()">↶ Undo</button><button onclick="redo()">↷ Redo</button><label class="m"><input type="checkbox" onchange="$('sz').style.display=this.checked?'block':'none'"> Safe zone</label></div>
- <div class="m">Space play · ←/→ step · S split · Del remove · Ctrl+Z undo</div>
+<p class="lead">Cut, caption and score videos with a real timeline, 22 looks, speed ramps, text and stickers, auto captions, voiceover and a one-tap Auto reel. It all runs on your device, and nothing is uploaded.</p>
+<label class="drop" id="drop" tabindex="0"><input type="file" accept="video/*,image/*,audio/*" multiple onchange="UI.addFiles(this.files);this.value=''"><b>Drop videos or photos here</b>or click to choose. You can also paste images from the clipboard.<span>MP4 · MOV · WEBM · JPG · PNG</span></label>
+<button class="lnk" onclick="UI.sample()">No clips handy? Try a sample</button><div id="restore"></div></section>
+<div id="app"><div class="ws">
+<section class="stage" id="stage">
+ <div class="cw" id="cw"><canvas id="cv"></canvas><div class="safe" id="sz"></div><div id="hud"><div class="gl gx" id="gx" hidden></div><div class="gl gy" id="gy" hidden></div><div id="selbox" hidden><i class="hnd hRot" id="hRot" aria-label="Rotate"></i><i class="hnd hDel" id="hDel" aria-label="Delete">×</i><i class="hnd hScale" id="hScale" aria-label="Resize"></i></div></div></div>
+ <div class="tr2"><button id="pb" class="p" aria-label="Play">▶</button><input type="range" id="sk" min="0" max="100" value="0" aria-label="Seek"><span id="tm" class="m">0:00.0 / 0:00.0</span></div>
+ <div class="row" style="margin:0"><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><label class="m"><input type="checkbox" id="safeChk"> Safe zone</label></div>
+ <div class="m">Drag items on the preview. Pinch to resize. Space plays, S splits, Del removes.</div>
 </section>
-<section>
- <details class="card" open><summary>1 · Clips &amp; timeline</summary>
-  <div class="row"><label class="btn p">+ Videos / photos<input type="file" accept="video/*,image/*" multiple onchange="addFiles(this.files);this.value=''"></label><label class="btn">+ Logo<input type="file" accept="image/*" onchange="setLogo(this.files[0]);this.value=''"></label></div>
-  <div class="tl" id="tl"></div><div class="tt" id="tt"></div><div id="insp"></div></details>
- <details class="card" open><summary>2 · Text, emoji &amp; captions</summary>
-  <div class="row"><button onclick="addText()">+ Text</button><span id="em"></span></div><div id="texts"></div>
-  <div class="tx"><div class="mo">Captions · paste SRT, or plain lines to spread evenly</div><textarea id="srt" rows="3" placeholder="1&#10;00:00:00,000 --> 00:00:02,000&#10;Hello there"></textarea><button onclick="caps()" style="margin-top:6px">Import as captions</button> <span class="m">Make a transcript with <a href="../verbatim/">Verbatim</a>.</span></div></details>
- <details class="card"><summary>3 · Project, transitions &amp; logo</summary><div class="g">
-  <label>Format<select onchange="AR=this.value;dims();seek(cur)"><option>9:16</option><option>4:5</option><option>1:1</option><option>16:9</option></select></label>
-  <label>Quality<select onchange="S=+this.value;dims()"><option value="540">540p</option><option value="720" selected>720p</option><option value="1080">1080p</option></select></label>
-  <label>Frame rate<select id="fps"><option>30</option><option>60</option></select></label>
-  <label>Transition<select onchange="TR=this.value"><option>fade</option><option>white</option><option>zoom</option><option>slide</option><option>none</option></select></label>
-  <label>Transition (s)<input type="number" step=".1" min="0" max="2" value=".4" onchange="TD=+this.value"></label>
-  <label>Logo corner<select onchange="LP=this.value"><option>br</option><option>bl</option><option>tr</option><option>tl</option></select></label>
-  <label>Logo size %<input type="range" min="5" max="50" value="18" oninput="LS=+this.value"></label>
-  <label>Logo opacity<input type="range" min="10" max="100" value="85" oninput="LO=this.value/100"></label>
-  <label class="c"><input type="checkbox" checked onchange="fadeOn=this.checked"> Fade in &amp; out</label></div></details>
- <details class="card" open><summary>4 · Music</summary>
-  <div class="mo">Music library · original tracks made for Upright, free to use</div>
-  <div class="mtabs" id="mtabs" role="tablist" aria-label="Music mood"></div>
-  <div id="mlist" class="mlist"></div>
-  <div class="mo" style="margin-top:12px">Or use your own</div>
-  <div class="row"><label class="btn">♪ Add music from device<input type="file" accept="audio/*" onchange="setMusic(this.files[0]);this.value=''"></label><button onclick="sync()">Sync photo cuts to beat</button><button id="mclr" onclick="clearMusic()" hidden>Remove music</button><span id="mn" class="m"></span></div>
-  <div class="g"><label>Clip audio<input type="range" min="0" max="1" step=".05" value="1" oninput="vol(0,+this.value)"></label><label>Music volume<input type="range" min="0" max="1" step=".05" value=".8" oninput="vol(1,+this.value)"></label><label>Music starts at (s)<input type="number" step=".5" min="0" value="0" onchange="mo=+this.value"></label></div></details>
- <details class="card" open><summary>5 · Export</summary>
-  <div class="row"><button id="eb" class="p" onclick="exportVid()">Export reel</button><button id="xb" onclick="cancelExp()" disabled>Cancel</button><span id="st" class="m">Up to 90 s. Records in real time, so keep this tab open.</span></div>
-  <progress id="pg" value="0" max="1" style="margin-top:8px"></progress><div id="out" class="row"></div></details>
-</section></main></div>
-<section class="feat"><div><h2>Cuts to the beat</h2><p>Add a song and Upright finds the beats, then snaps your photo cuts to them.</p></div><div><h2>Private by design</h2><p>Everything runs in your browser. Your clips never leave your device and are never uploaded anywhere.</p></div><div><h2>Looks on top</h2><p>Eight filters, transitions, animated text, emoji, SRT captions, a logo, and export in four formats.</p></div></section>
-<p class="note">Nothing to download: Upright has no AI model to load, so it starts instantly. Export records in real time, so a 30-second reel takes 30 seconds. Chrome and Edge work best.</p>
+<section class="tlwrap"><div class="tlbar"><b class="mo">Timeline</b><span class="sp"></span><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit">Fit</button><label class="btn p">+ Add clips<input type="file" accept="video/*,image/*,audio/*" multiple hidden onchange="UI.addFiles(this.files);this.value=''"></label></div><div id="tls"><div id="tlin"><div id="tlc"></div><div id="dropInd" hidden></div></div></div></section>
+<section class="side"><div class="tabs" id="tabs" role="tablist"></div><div class="panel" id="panel"></div></section>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<section class="feat"><div><h2>A real timeline</h2><p>Trim, split, reorder, slow down, reverse and freeze, with thumbnails and sound waves.</p></div><div><h2>Auto reel</h2><p>Pick a song and Upright cuts your clips on the beat, with transitions and a look.</p></div><div><h2>Captions on your device</h2><p>Speech to text with Whisper, then word-by-word styles. Nothing leaves your phone or computer.</p></div><div><h2>Private by design</h2><p>Clips, voice and music are processed in your browser and never uploaded.</p></div></section>
+<p class="note">Chrome and Edge give the fastest export. Safari and Firefox work too, and fall back to a slower real-time recording when needed.</p>
+
 <footer class="legal">
   <div class="legal-grid">
-    <section><h2>Privacy</h2><p>Clips, photos, music and logos are processed in your browser. They are not uploaded to or stored by this site. The page sets no cookies, runs no ads and has no visitor tracking. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
+    <section><h2>Privacy</h2><p>Clips, photos, voice recordings, music and logos are processed in your browser. They are not uploaded to this site. If you use autosave, your project is kept in your own browser storage on this device only, and you can clear it with Start over. The page sets no cookies, runs no ads and has no visitor tracking. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
     <section><h2>Terms of use</h2><p>You are responsible for having the right to edit and use every clip, photo, song and logo you process. Results are made in your browser, can be imperfect, and are provided as is, without warranty of any kind. Check each export before you publish it. Copyrighted music may be muted or removed by the platforms you post to.</p></section>
-    <section><h2>Credits</h2><p>Upright is built on standard browser features (Canvas, Web Audio and MediaRecorder) and uses no third-party code or models. Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The tracks in the Music library are original music made for Upright and are free to use in videos you make with it. Upright is an independent project and is not affiliated with or endorsed by Instagram, Meta, YouTube or TikTok.</p></section>
+    <section><h2>Credits</h2><p>Upright is built on standard browser features (WebGL, Web Audio, WebCodecs and MediaRecorder). MP4 files are written with mp4-muxer by Vanilagy (MIT). Auto captions use OpenAI&rsquo;s Whisper (MIT) in the ONNX versions published by the sherpa-onnx project (Apache-2.0), run with ONNX Runtime Web (MIT), using the same model files as Verbatim. Whisper is less accurate for some languages, so check the text. Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The tracks in the Music library are original music made for Upright and are free to use in videos you make with it. Upright is an independent project and is not affiliated with or endorsed by Instagram, Meta, YouTube or TikTok.</p></section>
   </div>
   <div class="legal-base">
     <div class="legal-text">
@@ -138,6 +172,270 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
   </span>
   </div>
   <details class="licenses"><summary>Open-source licences</summary><div class="licenses-body">
+<div><h3>Whisper by OpenAI: MIT License</h3><p class="src">https://github.com/openai/whisper</p><pre>MIT License
+
+Copyright (c) 2022 OpenAI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>sherpa-onnx, which publishes the ONNX versions of Whisper: Apache License 2.0</h3><p class="src">https://github.com/k2-fsa/sherpa-onnx</p><pre>Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      &quot;License&quot; shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      &quot;Licensor&quot; shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      &quot;Legal Entity&quot; shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      &quot;control&quot; means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      &quot;You&quot; (or &quot;Your&quot;) shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      &quot;Source&quot; form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      &quot;Object&quot; form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      &quot;Work&quot; shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      &quot;Derivative Works&quot; shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      &quot;Contribution&quot; shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, &quot;submitted&quot;
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as &quot;Not a Contribution.&quot;
+
+      &quot;Contributor&quot; shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a &quot;NOTICE&quot; text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an &quot;AS IS&quot; BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets &quot;[]&quot;
+      replaced with your own identifying information. (Don&#x27;t include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same &quot;printed page&quot; as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.</pre></div>
+<div><h3>ONNX Runtime Web: MIT License</h3><p class="src">https://github.com/microsoft/onnxruntime</p><pre>MIT License
+
+Copyright (c) Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>mp4-muxer: MIT License</h3><p class="src">https://github.com/Vanilagy/mp4-muxer</p><pre>MIT License
+
+Copyright (c) 2023 Vanilagy
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
 <div><h3>Fraunces: SIL Open Font License 1.1</h3><p class="src">https://github.com/undercasetype/Fraunces</p><pre>Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces) Fraunces-Italic[SOFT,WONK,opsz,wght].ttf: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
@@ -420,125 +718,20 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   </div></details>
 </footer>
 <dialog id="dt"><h3>Details</h3><div class="m">What this browser can do for Upright.</div><div class="ck" id="ck"></div><button onclick="$('dt').close()">Close</button></dialog>
-<script>
-const $=id=>document.getElementById(id),cv=$('cv'),g=cv.getContext('2d');
-let W,H,S=720,AR='9:16',clips=[],texts=[],sel=-1,cur=0,playing=false,t0=0,ts=0,ci=-1,ac,dest,vg,mg,rec=null,xc=0,music=null,mo=0,bts=[],logo=null,LP='br',LS=18,LO=.85,TR='fade',TD=.4,fadeOn=true,vv=1,mv=.8,H1=[],H2=[];
-const F={none:'',bw:'grayscale(1)',sepia:'sepia(.8)',warm:'sepia(.3) saturate(1.3) hue-rotate(-10deg)',cool:'saturate(1.1) hue-rotate(15deg) brightness(1.05)',vivid:'saturate(1.6) contrast(1.1)',fade:'contrast(.85) brightness(1.1) saturate(.8)',noir:'grayscale(1) contrast(1.4) brightness(.9)'},FN=['system-ui,sans-serif','Georgia,serif','Impact,sans-serif','"Courier New",monospace','"Brush Script MT",cursive'],FNn=['Sans','Serif','Impact','Mono','Script'];
-const len=c=>c.t=='v'?(c.end-c.start)/c.speed:c.end,total=()=>clips.reduce((a,c)=>a+len(c),0),esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])),st=m=>$('st').textContent=m;
-function dims(){const[a,b]=AR.split(':').map(Number);if(a<b){W=S;H=Math.round(S*b/a)}else{H=S;W=Math.round(S*a/b)}cv.width=W;cv.height=H;$('cw').style.aspectRatio=a+'/'+b}dims();
-const snap=()=>({c:clips.map(c=>({...c})),t:texts.map(x=>({...x}))});function cm(){H1.push(snap());if(H1.length>60)H1.shift();H2=[]}
-function undo(){if(!H1.length)return;H2.push(snap());const s=H1.pop();clips=s.c;texts=s.t;sel=Math.min(sel,clips.length-1);seek(cur);render()}
-function redo(){if(!H2.length)return;H1.push(snap());const s=H2.pop();clips=s.c;texts=s.t;seek(cur);render()}
-function loc(t){let a=0;for(let i=0;i<clips.length;i++){const l=len(clips[i]);if(t<a+l||i==clips.length-1)return{i,l:Math.max(0,Math.min(t-a,l))};a+=l}return null}
-function addFiles(fs){[...fs].filter(f=>/^(video|image)\//.test(f.type)).forEach(f=>{const url=URL.createObjectURL(f),name=f.name,d={fit:'cover',f:'none',br:100,ct:100,sa:100,zoom:100,flip:0,vol:100,start:0,speed:1};
- if(f.type.startsWith('video')){const e=document.createElement('video');e.src=url;e.playsInline=true;e.preload='auto';e.onloadedmetadata=()=>push({...d,t:'v',el:e,name,dur:e.duration,end:Math.min(e.duration,30)})}
- else{const e=new Image();e.src=url;e.onload=()=>push({...d,t:'i',el:e,name,end:3})}})}
-function push(c){reveal();cm();clips.push(c);if(ac&&c.t=='v')wire(c.el,vg);sel=clips.length-1;seek(cur);render()}
-function wire(el,n){if(el._w)return;el._w=1;const s=ac.createMediaElementSource(el);if(n===vg){el._g=ac.createGain();s.connect(el._g);el._g.connect(vg)}else s.connect(n)}
-async function audio(){if(!ac){ac=new AudioContext();dest=ac.createMediaStreamDestination();vg=ac.createGain();mg=ac.createGain();vg.gain.value=vv;mg.gain.value=mv;for(const n of[vg,mg]){n.connect(dest);n.connect(ac.destination)}clips.forEach(c=>c.t=='v'&&wire(c.el,vg));if(music)wire(music,mg)}await ac.resume()}
-function vol(k,v){k?mv=v:vv=v;if(ac)(k?mg:vg).gain.value=v}
-let curLib=-1,pvA=null,pvI=-1;
-function stopPv(){if(pvA){pvA.pause();pvA=null}pvI=-1;if(window.renderLib)renderLib()}
-async function setMusic(f,o){if(!f)return;stopPv();if(music)music.pause();const url=URL.createObjectURL(f);music=new Audio(url);if(ac)wire(music,mg);bts=[];curLib=o?o.id:-1;$('mclr').hidden=false;
- if(o){await new Promise(r=>{music.addEventListener('loadedmetadata',r,{once:true});music.addEventListener('error',r,{once:true});music.load()});const d=music.duration||60,bt=60/o.bpm;for(let k=0;k*bt<d;k++)bts.push(+(k*bt).toFixed(3));$('mn').textContent=o.name+' · '+o.bpm+' BPM · exact beats';renderLib();return}
- $('mn').textContent='Finding beats…';renderLib();
- try{const x=new(window.OfflineAudioContext||webkitOfflineAudioContext)(1,1,44100),b=await x.decodeAudioData(await f.arrayBuffer()),d=b.getChannelData(0),hop=Math.floor(b.sampleRate/50),e=[];for(let i=0;i+hop<d.length;i+=hop){let s=0;for(let j=0;j<hop;j+=4)s+=d[i+j]**2;e.push(s)}
-  let last=-9;for(let i=2;i<e.length-2;i++){let a=0;for(let j=Math.max(0,i-25);j<i;j++)a+=e[j];a/=25;if(e[i]>a*1.6&&e[i]>=e[i-1]&&e[i]>=e[i+1]&&i-last>=12){bts.push(i/50);last=i}}$('mn').textContent=f.name+' · '+bts.length+' beats found'}catch(r){$('mn').textContent=f.name+' · beat detection unavailable'}}
-function clearMusic(){stopPv();if(music){music.pause();music=null}bts=[];curLib=-1;$('mn').textContent='';$('mclr').hidden=true;renderLib()}
-const LIB=[{"name": "Sunny Side", "mood": "Upbeat", "desc": "Bright and bouncy pop", "bpm": 118, "dur": 61.0, "file": "music/01-sunny-side.mp3"}, {"name": "Street Hype", "mood": "Upbeat", "desc": "Driving, confident groove", "bpm": 128, "dur": 60.0, "file": "music/02-street-hype.mp3"}, {"name": "Feel Good Funk", "mood": "Upbeat", "desc": "Warm, groovy and playful", "bpm": 108, "dur": 60.0, "file": "music/03-feel-good-funk.mp3"}, {"name": "Slow Morning", "mood": "Chill", "desc": "Soft, sunny and unhurried", "bpm": 80, "dur": 60.0, "file": "music/04-slow-morning.mp3"}, {"name": "Lo-fi Window", "mood": "Chill", "desc": "Dusty beat with warm keys", "bpm": 76, "dur": 60.0, "file": "music/05-lofi-window.mp3"}, {"name": "Late Drive", "mood": "Chill", "desc": "Neon pads for night roads", "bpm": 92, "dur": 60.0, "file": "music/06-late-drive.mp3"}, {"name": "Rising Light", "mood": "Cinematic", "desc": "A slow build to a bright finish", "bpm": 90, "dur": 58.7, "file": "music/07-rising-light.mp3"}, {"name": "Big Moment", "mood": "Cinematic", "desc": "Epic hits and rolling toms", "bpm": 100, "dur": 60.0, "file": "music/08-big-moment.mp3"}, {"name": "Quiet Rain", "mood": "Emotional", "desc": "Gentle piano and rainfall", "bpm": 66, "dur": 58.2, "file": "music/09-quiet-rain.mp3"}, {"name": "Unsaid", "mood": "Emotional", "desc": "Soft pulses and a lingering pad", "bpm": 72, "dur": 60.0, "file": "music/10-unsaid.mp3"}, {"name": "Overdrive", "mood": "Hype", "desc": "Hard kick, heavy bass, no brakes", "bpm": 140, "dur": 60.0, "file": "music/11-overdrive.mp3"}, {"name": "Beat Drop", "mood": "Hype", "desc": "Build-up, riser and a big drop", "bpm": 130, "dur": 59.1, "file": "music/12-beat-drop.mp3"}];let libTab='All';
-function renderLib(){const tabs=['All',...new Set(LIB.map(t=>t.mood))];$('mtabs').innerHTML=tabs.map(m=>`<button role="tab" aria-selected="${m==libTab}" onclick="libTab='${m}';renderLib()">${m}</button>`).join('');
- $('mlist').innerHTML=LIB.map((t,i)=>({t,i})).filter(x=>libTab=='All'||x.t.mood==libTab).map(({t,i})=>`<div class="mrow ${i==curLib?'on':''}"><button class="pv" onclick="prevLib(${i})" aria-label="${pvI==i?'Stop preview of ':'Preview '}${esc(t.name)}">${pvI==i?'❚❚':'▶'}</button><div><b>${esc(t.name)}</b><span class="d">${t.mood} · ${t.bpm} BPM · ${esc(t.desc)}</span></div>${i==curLib?'<button onclick="clearMusic()">Remove</button>':`<button class="p" onclick="useLib(${i})">Use</button>`}</div>`).join('')}
-function prevLib(i){if(pvI==i){stopPv();return}stopPv();if(playing)pause();pvA=new Audio(LIB[i].file);pvI=i;pvA.addEventListener('ended',stopPv);pvA.play().catch(()=>{stopPv();$('mn').textContent='Preview could not start. Check your connection.'});renderLib()}
-async function useLib(i){const t=LIB[i];stopPv();$('mn').textContent='Loading '+t.name+'…';try{const r=await fetch(t.file);if(!r.ok)throw 0;await setMusic(await r.blob(),{id:i,name:t.name,bpm:t.bpm})}catch(e){$('mn').textContent='Could not load that track. Check your connection.'}}
-function sync(){if(!bts.length){$('mn').textContent='Add music first to find beats.';return}cm();let a=0;clips.forEach(c=>{if(c.t=='i'){const b=bts.map(x=>x-mo).find(x=>x>=a+.9);if(b)c.end=+(b-a).toFixed(2)}a+=len(c)});seek(cur);render()}
-function setLogo(f){if(!f)return;logo=new Image();logo.src=URL.createObjectURL(f)}
-async function toggle(){if(rec)return;playing?pause():play()}
-async function play(){if(!clips.length)return;stopPv();await audio();if(cur>=total()-.05)cur=0;ci=-1;playing=true;t0=performance.now();ts=cur;if(music&&mo+cur<music.duration){music.currentTime=mo+cur;music.play().catch(()=>{})}$('pb').textContent='❚❚'}
-function pause(){playing=false;clips.forEach(c=>c.t=='v'&&c.el.pause());if(music)music.pause();$('pb').textContent='▶'}
-function seek(t){cur=Math.max(0,Math.min(t,total()));ci=-1;if(playing){t0=performance.now();ts=cur;if(music&&mo+cur<music.duration)music.currentTime=mo+cur}}
-function fit(e,w,h,m,k){let s=m=='cover'?Math.max(W/w,H/h):Math.min(W/w,H/h);s*=k;g.drawImage(e,(W-w*s)/2,(H-h*s)/2,w*s,h*s)}
-function wrap(t,mx){const o=[];String(t).split('\n').forEach(p=>{let l='';p.split(' ').forEach(w=>{const n=l?l+' '+w:w;if(g.measureText(n).width>mx&&l){o.push(l);l=w}else l=n});o.push(l)});return o}
-function draw(T){g.globalAlpha=1;g.filter='none';g.fillStyle='#000';g.fillRect(0,0,W,H);const L=loc(cur);
- if(L){const c=clips[L.i],e=c.el,v=c.t=='v',w=v?e.videoWidth:e.naturalWidth,h=v?e.videoHeight:e.naturalHeight;
-  if(w&&h){const n=len(c),live=playing||rec;let pi=1,po=1;if(live&&TR!='none'&&TD>0){pi=Math.min(1,L.l/TD);po=Math.min(1,(n-L.l)/TD)}const p=Math.min(pi,po);
-   let z=c.zoom/100*(v?1:1+.06*L.l/n),tx=0;if(TR=='zoom')z*=1+.2*(1-p);if(TR=='slide')tx=pi<1?(1-pi)*W:-(1-po)*W;
-   g.save();g.translate(W/2+tx,H/2);g.scale(c.flip?-z:z,z);g.translate(-W/2,-H/2);
-   if(c.fit=='contain'){g.filter='blur(30px) brightness(.6)';fit(e,w,h,'cover',1.15)}
-   g.filter=`brightness(${c.br}%) contrast(${c.ct}%) saturate(${c.sa}%) ${F[c.f]}`;fit(e,w,h,c.fit,1);g.restore();g.filter='none';
-   if(TR=='fade'||TR=='zoom'||TR=='white'){g.fillStyle=TR=='white'?'#fff':'#000';g.globalAlpha=1-p;g.fillRect(0,0,W,H);g.globalAlpha=1}}}
- const k=S/720;
- for(const x of texts){if(cur<x.s||cur>x.e)continue;const p=Math.min(1,(cur-x.s)/.35);let al=1,sc=1,dy=0,t=x.t;
-  if(x.a=='fade')al=p;else if(x.a=='pop')sc=.7+.3*(1-(1-p)**3);else if(x.a=='slide'){dy=(1-p)*60*k;al=p}else if(x.a=='type')t=t.slice(0,Math.ceil(t.length*Math.min(1,(cur-x.s)/1.2)));
-  const sz=x.size*k,lh=sz*1.2;g.save();g.globalAlpha=al;g.translate(W*x.x/100,H*x.y/100+dy);g.scale(sc,sc);g.font=`${x.b?800:500} ${sz}px ${FN[x.f]}`;g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
-  const ls=wrap(t,W*.84);
-  if(x.bg){const mw=Math.max(...ls.map(l=>g.measureText(l).width))+sz*.6;g.fillStyle='rgba(0,0,0,.6)';g.beginPath();(g.roundRect||g.rect).call(g,-mw/2,-ls.length*lh/2-sz*.1,mw,ls.length*lh+sz*.2,sz*.3);g.fill()}
-  ls.forEach((l,i)=>{const y=(i-(ls.length-1)/2)*lh;if(x.o){g.lineWidth=sz/7;g.strokeStyle='#000';g.strokeText(l,0,y)}g.fillStyle=x.c;g.fillText(l,0,y)});g.restore()}
- if(logo&&logo.naturalWidth){const w=W*LS/100,h=w*logo.naturalHeight/logo.naturalWidth,m=W*.04;g.globalAlpha=LO;g.drawImage(logo,LP[1]=='r'?W-w-m:m,LP[0]=='b'?H-h-m*3:m,w,h);g.globalAlpha=1}
- if(fadeOn&&T>0&&(playing||rec)){const a=Math.max(0,Math.min(1,cur/.4,(T-cur)/.4));if(a<1){g.fillStyle=`rgba(0,0,0,${1-a})`;g.fillRect(0,0,W,H)}}}
-function loop(n){const T=total();
- if(playing){cur=ts+(n-t0)/1000;if(cur>=T){cur=T;pause();if(rec){const r=rec;setTimeout(()=>r.state!='inactive'&&r.stop(),250)}}}
- const L=loc(cur);
- if(L&&L.i!==ci){if(clips[ci]&&clips[ci].t=='v')clips[ci].el.pause();ci=L.i;const c=clips[ci];
-  if(c.t=='v'){if(c.el._g)c.el._g.gain.value=c.vol/100;c.el.playbackRate=c.speed;c.el.currentTime=c.start+L.l*c.speed;if(playing)c.el.play().catch(()=>{})}}
- if(playing&&ac&&music&&fadeOn)mg.gain.value=mv*Math.max(0,Math.min(1,(T-cur)/1.5));
- draw(T);if(document.activeElement!==$('sk'))$('sk').value=T?cur/T*1000:0;$('ph').style.left=(T?cur/T*100:0)+'%';if(rec)$('pg').value=T?cur/T:0;
- $('tm').textContent=cur.toFixed(1)+' / '+T.toFixed(1)+'s'+(T>90?' (over 90 s)':'');$('tm').style.color=T>90?'var(--ac)':'';requestAnimationFrame(loop)}
-requestAnimationFrame(loop);
-function up(k,v){cm();const c=clips[sel];if(c.t=='v'){if(k=='start')c.start=Math.max(0,Math.min(v,c.end-.1));else if(k=='end')c.end=Math.max(c.start+.1,Math.min(v,c.dur));else c[k]=v}else if(k=='end')c.end=Math.max(.5,v);else c[k]=v;seek(cur);render()}
-const lv=(k,v)=>{clips[sel][k]=v};
-function mv2(d){const j=sel+d;if(j<0||j>=clips.length)return;cm();[clips[sel],clips[j]]=[clips[j],clips[sel]];sel=j;seek(cur);render()}
-function rm(){if(sel<0)return;cm();clips.splice(sel,1);sel=Math.min(sel,clips.length-1);seek(cur);render()}
-function dup(){cm();clips.splice(sel+1,0,{...clips[sel]});seek(cur);render()}
-function split(){const L=loc(cur),c=clips[sel];if(!c||!L||L.i!=sel||L.l<.2||L.l>len(c)-.2){st('Move the playhead inside the selected clip first.');return}cm();let n;if(c.t=='v'){const s=c.start+L.l*c.speed;n={...c,start:s};c.end=s}else{n={...c,end:len(c)-L.l};c.end=L.l}clips.splice(sel+1,0,n);seek(cur);render()}
-function addText(t,sz){cm();const T=total();texts.push({t:typeof t=='string'?t:'Your text',s:cur,e:Math.max(cur+3,Math.min(T,cur+3)),size:sz||72,c:'#ffffff',x:50,y:50,a:'pop',f:0,b:1,bg:0,o:1});render()}
-function tx(i,k,v){cm();texts[i][k]=v;if(k=='f'||k=='a')render()}
-function caps(){const v=$('srt').value.trim();if(!v)return;cm();const tm=s=>{const m=[...s.matchAll(/(\d+):(\d+):(\d+)[,.](\d+)/g)].map(a=>+a[1]*3600+ +a[2]*60+ +a[3]+ +('0.'+a[4]));return m},bl=v.split(/\n\s*\n/),mk=(t,s,e)=>texts.push({t,s,e,size:54,c:'#ffffff',x:50,y:76,a:'fade',f:0,b:1,bg:1,o:0});
- if(/-->/.test(v))bl.forEach(b=>{const ls=b.split('\n'),i=ls.findIndex(l=>l.includes('-->'));if(i<0)return;const t=tm(ls[i]);if(t.length>1)mk(ls.slice(i+1).join('\n'),t[0],t[1])});
- else{const ls=v.split('\n').filter(Boolean),T=total()||ls.length*2,d=T/ls.length;ls.forEach((l,i)=>mk(l,i*d,(i+1)*d))}$('srt').value='';render()}
-const rg=(l,k,a,b,v)=>`<label>${l}<input type="range" min="${a}" max="${b}" value="${v}" onpointerdown="cm()" oninput="lv('${k}',+this.value)"></label>`,opt=(o,v)=>o.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join('');
-function render(){let a=0;const T=total();
- $('tl').innerHTML=clips.map((c,i)=>{const h=`<div class="tb ${i==sel?'on':''}" style="flex:${len(c)}" onclick="sel=${i};seek(${a});render()">${i+1}</div>`;a+=len(c);return h}).join('')+'<div class="ph" id="ph"></div>';
- if(!clips.length)$('tl').innerHTML='<span class="m">Add clips to begin. Mix videos and photos freely.</span><div class="ph" id="ph"></div>';
- $('tt').innerHTML=T?texts.map(x=>`<b style="left:${x.s/T*100}%;width:${Math.max(1,(x.e-x.s)/T*100)}%"></b>`).join(''):'';
- const c=clips[sel];$('insp').innerHTML=c?`<div class="mo">${esc(c.name)}</div><div class="g">${c.t=='v'?`<label>Trim start (s)<input type="number" step=".1" value="${c.start.toFixed(1)}" onchange="up('start',+this.value)"></label><label>Trim end (s)<input type="number" step=".1" value="${c.end.toFixed(1)}" onchange="up('end',+this.value)"></label><label>Speed<select onchange="up('speed',+this.value)">${[.25,.5,.75,1,1.5,2,3,4].map(s=>`<option ${s==c.speed?'selected':''}>${s}</option>`).join('')}</select></label>`:`<label>Duration (s)<input type="number" step=".5" value="${c.end}" onchange="up('end',+this.value)"></label>`}
- <label>Filter<select onchange="up('f',this.value)">${opt(Object.keys(F),c.f)}</select></label><label>Fit<select onchange="up('fit',this.value)">${opt(['cover','contain'],c.fit)}</select></label>
- ${rg('Brightness','br',40,180,c.br)}${rg('Contrast','ct',40,180,c.ct)}${rg('Saturation','sa',0,250,c.sa)}${rg('Zoom','zoom',100,250,c.zoom)}${c.t=='v'?rg('Clip volume','vol',0,100,c.vol):''}<label class="c"><input type="checkbox" ${c.flip?'checked':''} onchange="up('flip',+this.checked)"> Flip</label></div>
- <div class="row"><button onclick="mv2(-1)">↑</button><button onclick="mv2(1)">↓</button><button onclick="split()">Split</button><button onclick="dup()">Duplicate</button><button onclick="rm()">Remove</button></div>`:'';
- $('texts').innerHTML=texts.map((x,i)=>`<div class="tx"><textarea rows="2" oninput="texts[${i}].t=this.value">${esc(x.t)}</textarea><div class="g">
- <label>Start (s)<input type="number" step=".1" value="${x.s.toFixed(1)}" onchange="tx(${i},'s',+this.value)"></label><label>End (s)<input type="number" step=".1" value="${x.e.toFixed(1)}" onchange="tx(${i},'e',+this.value)"></label>
- <label>Size<input type="number" value="${x.size}" onchange="tx(${i},'size',+this.value)"></label><label>X %<input type="number" value="${x.x}" onchange="tx(${i},'x',+this.value)"></label><label>Y %<input type="number" value="${x.y}" onchange="tx(${i},'y',+this.value)"></label>
- <label>Colour<input type="color" value="${x.c}" oninput="texts[${i}].c=this.value"></label><label>Font<select onchange="tx(${i},'f',this.selectedIndex)">${FNn.map((n,j)=>`<option ${j==x.f?'selected':''}>${n}</option>`).join('')}</select></label>
- <label>Animation<select onchange="tx(${i},'a',this.value)">${opt(['pop','fade','slide','type','none'],x.a)}</select></label>
- <label class="c"><input type="checkbox" ${x.b?'checked':''} onchange="tx(${i},'b',+this.checked)"> Bold</label><label class="c"><input type="checkbox" ${x.bg?'checked':''} onchange="tx(${i},'bg',+this.checked)"> Box</label><label class="c"><input type="checkbox" ${x.o?'checked':''} onchange="tx(${i},'o',+this.checked)"> Outline</label></div>
- <button onclick="cm();texts.splice(${i},1);render()">Delete</button></div>`).join('')}
-$('em').innerHTML=['🔥','❤️','😂','✨','👀','🎉','👇','⭐','💯'].map(e=>`<button onclick="addText('${e}',150)" style="padding:2px 7px">${e}</button>`).join('');
-async function exportVid(){const T=total();if(!T){st('Add a clip first.');return}if(!window.MediaRecorder){st('This browser can’t record video. Try Chrome, Edge or Firefox.');return}
- await audio();const ms=['video/mp4;codecs=avc1,mp4a.40.2','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'],m=ms.find(x=>MediaRecorder.isTypeSupported(x))||'';
- const s=cv.captureStream(+$('fps').value);dest.stream.getAudioTracks().forEach(t=>s.addTrack(t));const ch=[];xc=0;pause();
- rec=new MediaRecorder(s,{...(m?{mimeType:m}:{}),videoBitsPerSecond:S>=1080?9e6:S>=720?6e6:4e6});rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
- rec.onstop=()=>{rec=null;$('eb').disabled=false;$('xb').disabled=true;$('pg').value=0;seek(0);if(xc){st('Export cancelled.');return}st('Done. Preview and download below.');
-  const ext=m.includes('mp4')?'mp4':'webm',u=URL.createObjectURL(new Blob(ch,{type:(m||'video/webm').split(';')[0]}));$('out').innerHTML=`<video controls playsinline src="${u}"></video><a class="btn p" download="reel.${ext}" href="${u}">Download .${ext}</a>`};
- $('eb').disabled=true;$('xb').disabled=false;$('out').innerHTML='';st('Recording in real time. Keep this tab open.');seek(0);rec.start(500);play()}
-function cancelExp(){if(!rec)return;xc=1;pause();rec.stop()}
-addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&e.target.type!='range')return;const k=e.key;
- if(k==' '){e.preventDefault();toggle()}else if(k=='ArrowLeft')seek(cur-(e.shiftKey?1:.1));else if(k=='ArrowRight')seek(cur+(e.shiftKey?1:.1));else if(k=='s'&&!e.ctrlKey)split();else if(k=='Delete'||k=='Backspace')rm();else if((e.ctrlKey||e.metaKey)&&k.toLowerCase()=='z'){e.preventDefault();e.shiftKey?redo():undo()}});
-render();renderLib();
-
-function reveal(){document.body.classList.add('edit');scrollTo(0,0)}
-function details(){const c=document.createElement('canvas').getContext('2d'),mt=t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t),r=[['Video recording (MediaRecorder)',!!window.MediaRecorder],['MP4 export',mt('video/mp4;codecs=avc1,mp4a.40.2')],['WebM export',mt('video/webm;codecs=vp9,opus')||mt('video/webm')],['Audio engine (Web Audio)',!!window.AudioContext],['Beat finder (audio decoding)',!!(window.OfflineAudioContext||window.webkitOfflineAudioContext)],['Canvas filters (looks)',"filter" in c],['WebCodecs (not required)',!!window.VideoEncoder]];$('ck').innerHTML=r.map(x=>`<div><span class="${x[1]?'y':'n'}">${x[1]?'✓':'✗'}</span> ${x[0]}</div>`).join('');$('dt').showModal()}
-(()=>{const ok=!!window.MediaRecorder;if(!ok){$('chip').classList.add('bad');$('chipt').textContent='Export not supported here'}
- const dz=$('drop');['dragenter','dragover'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.add('on')}));['dragleave','drop'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.remove('on')}));
- addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files)});
- addEventListener('paste',e=>{const f=[...(e.clipboardData&&e.clipboardData.files||[])];if(f.length)addFiles(f)});
- dz.addEventListener('keydown',e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();dz.querySelector('input').click()}})})();
-function sample(){const cs=[['#ff7a18','#af002d'],['#1fa2ff','#7f00ff'],['#11998e','#f9d423']];cs.forEach((c,i)=>{const k=document.createElement('canvas');k.width=720;k.height=1280;const x=k.getContext('2d'),gr=x.createLinearGradient(0,0,720,1280);gr.addColorStop(0,c[0]);gr.addColorStop(1,c[1]);x.fillStyle=gr;x.fillRect(0,0,720,1280);x.fillStyle='rgba(255,255,255,.16)';x.beginPath();x.arc(520+i*-90,320+i*260,230,0,7);x.fill();const e=new Image();e.onload=()=>push({fit:'cover',f:'none',br:100,ct:100,sa:100,zoom:100,flip:0,vol:100,start:0,speed:1,t:'i',el:e,name:'sample-'+(i+1),end:2.5});e.src=k.toDataURL()});
- setTimeout(()=>{addText('Made in Upright',60);const t=texts[texts.length-1];t.s=.3;t.e=5;render()},400)}
-</script>
+<script src="lib.js"></script>
+<script src="fx.js"></script>
+<script src="whisper.js"></script>
+<script src="mp4-muxer.js"></script>
+<script src="engine.js"></script>
+<script src="export.js"></script>
+<script src="store.js"></script>
+<script src="auto.js"></script>
+<script src="ui.js"></script>
+<script src="app.js"></script>
 <script>
 (function(){const $=id=>document.getElementById(id),SITE='https://tinywebapps.in/upright/',web=/^https?:$/.test(location.protocol),url=web?location.origin+location.pathname:SITE,text='Upright: drop your clips and make a vertical reel on your device. Free, no sign-up.';
 $('shWa').href='https://wa.me/?text='+encodeURIComponent(text+' '+url);$('shX').href='https://x.com/intent/post?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url);
 const note=$('shNote');let t;const flash=m=>{note.textContent=m;clearTimeout(t);t=setTimeout(()=>{note.textContent=''},4500)};
 $('shIg').addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:'Upright',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}try{await navigator.clipboard.writeText(url);flash('Link copied. Paste it on Instagram.')}catch(e){flash('Copy this link: '+url)}});})();
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 </script>
 </body></html>
