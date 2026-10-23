@@ -78,10 +78,11 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
 /* ---- Upright v2 ---- */
 .edit .feat,.edit .note{display:none}
 #app{max-width:1280px}
-.ws{display:grid;grid-template-columns:minmax(260px,400px) minmax(0,1fr);grid-template-areas:"stage side" "tl tl";gap:14px 16px;align-items:start}
-.stage{grid-area:stage;position:sticky;top:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.side{grid-area:side;min-width:0}.tlwrap{grid-area:tl;min-width:0}
-@media(max-width:900px){.ws{grid-template-columns:1fr;grid-template-areas:"stage" "tl" "side"}.stage{top:0;z-index:20;background:var(--bg);margin:0 -20px;padding:8px 20px 8px;border-bottom:1px solid var(--bd)}.stage>.m{display:none}}
+.ws{display:grid;gap:14px}
+.top{display:grid;grid-template-columns:minmax(260px,400px) minmax(0,1fr);gap:14px 16px;align-items:start}
+.stage{position:sticky;top:8px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.side{min-width:0}.tlwrap{min-width:0}
+@media(max-width:900px){.ws{display:flex;flex-direction:column}.top{display:contents}.stage{order:1;top:0;z-index:20;background:var(--bg);margin:0 -20px;padding:8px 20px 8px;border-bottom:1px solid var(--bd)}.stage>.m{display:none}.tlwrap{order:2}.side{order:3}}
 .cw{--ar:9/16;--arn:.5625;position:relative;width:min(100%,calc(min(66vh,600px)*var(--arn)));aspect-ratio:var(--ar);height:auto;background:#000;border:1px solid var(--bd);border-radius:16px;overflow:hidden;touch-action:none}
 @media(max-width:900px){.cw{width:min(100%,calc(min(34vh,300px)*var(--arn)))}}
 #hud{position:absolute;inset:0;touch-action:none;cursor:grab}
@@ -139,15 +140,16 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
 <p class="lead">Cut, caption and score videos with a real timeline, 22 looks, speed ramps, text and stickers, auto captions, voiceover and a one-tap Auto reel. It all runs on your device, and nothing is uploaded.</p>
 <label class="drop" id="drop" tabindex="0"><input type="file" accept="video/*,image/*,audio/*" multiple onchange="UI.addFiles(this.files);this.value=''"><b>Drop videos or photos here</b>or click to choose. You can also paste images from the clipboard.<span>MP4 · MOV · WEBM · JPG · PNG</span></label>
 <button class="lnk" onclick="UI.sample()">No clips handy? Try a sample</button><div id="restore"></div></section>
-<div id="app"><div class="ws">
+<div id="app"><div class="ws"><div class="top">
 <section class="stage" id="stage">
  <div class="cw" id="cw"><canvas id="cv"></canvas><div class="safe" id="sz"></div><div id="hud"><div class="gl gx" id="gx" hidden></div><div class="gl gy" id="gy" hidden></div><div id="selbox" hidden><i class="hnd hRot" id="hRot" aria-label="Rotate"></i><i class="hnd hDel" id="hDel" aria-label="Delete">×</i><i class="hnd hScale" id="hScale" aria-label="Resize"></i></div></div></div>
  <div class="tr2"><button id="pb" class="p" aria-label="Play">▶</button><input type="range" id="sk" min="0" max="100" value="0" aria-label="Seek"><span id="tm" class="m">0:00.0 / 0:00.0</span></div>
  <div class="row" style="margin:0"><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><label class="m"><input type="checkbox" id="safeChk"> Safe zone</label></div>
  <div class="m">Drag items on the preview. Pinch to resize. Space plays, S splits, Del removes.</div>
 </section>
-<section class="tlwrap"><div class="tlbar"><b class="mo">Timeline</b><span class="sp"></span><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit">Fit</button><label class="btn p">+ Add clips<input type="file" accept="video/*,image/*,audio/*" multiple hidden onchange="UI.addFiles(this.files);this.value=''"></label></div><div id="tls"><div id="tlin"><div id="tlc"></div><div id="dropInd" hidden></div></div></div></section>
 <section class="side"><div class="tabs" id="tabs" role="tablist"></div><div class="panel" id="panel"></div></section>
+</div>
+<section class="tlwrap"><div class="tlbar"><b class="mo">Timeline</b><span class="sp"></span><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit">Fit</button><label class="btn p">+ Add clips<input type="file" accept="video/*,image/*,audio/*" multiple hidden onchange="UI.addFiles(this.files);this.value=''"></label></div><div id="tls"><div id="tlin"><div id="tlc"></div><div id="dropInd" hidden></div></div></div></section>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <section class="feat"><div><h2>A real timeline</h2><p>Trim, split, reorder, slow down, reverse and freeze, with thumbnails and sound waves.</p></div><div><h2>Auto reel</h2><p>Pick a song and Upright cuts your clips on the beat, with transitions and a look.</p></div><div><h2>Captions on your device</h2><p>Speech to text with Whisper, then word-by-word styles. Nothing leaves your phone or computer.</p></div><div><h2>Private by design</h2><p>Clips, voice and music are processed in your browser and never uploaded.</p></div></section>
