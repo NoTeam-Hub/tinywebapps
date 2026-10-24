@@ -90,5 +90,6 @@ const LANGS = [['en','English'],['zh','Chinese'],['de','German'],['es','Spanish'
     const tot = ws.reduce((n, w) => n + w.length + 1, 0), d = Math.max(.1, seg.end - seg.start); let t = seg.start;
     return ws.map((w) => { const e = t + d * (w.length + 1) / tot, o = { w: w, s: t, e: e }; t = e; return o; });
   }
-  return { transcribe, cancel, LANGS, words };
+  function files() { const out = [], add = (s) => s.parts.forEach((p) => out.push({ p: p.p, size: p.size })); ['ort', 'mjs', 'wasm'].forEach((k) => add(MF.vendor[k])); add(MF.tokens); for (const k in MF.models) { add(MF.models[k].enc); add(MF.models[k].dec); } return out.map((f) => ({ url: new URL(f.p, BASE).href, name: 'verbatim/' + f.p, size: f.size })); }
+  return { transcribe, cancel, LANGS, words, files };
 })();

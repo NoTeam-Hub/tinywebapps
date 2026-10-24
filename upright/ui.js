@@ -317,7 +317,7 @@
   ACT.exportStop = () => { if (UI.exp) UI.exp.abort(); };
   ACT.shareVid = async () => { const r = UI.lastOut; try { await navigator.share({ files: [new File([r.blob], 'upright-reel.' + r.ext, { type: r.blob.type })], title: 'My reel' }); } catch (e) { if (e && e.name !== 'AbortError') say('Sharing was not possible. Use Download instead.', true); } };
   ACT.exportGo = async () => {
-    if (UI.exp) return; if (!U.total()) return say('Add a clip first.', true); UI.stopPv(); const ctl = new AbortController(); UI.exp = ctl; $('eb').disabled = true; $('xb').disabled = false; $('out').innerHTML = ''; const t0 = performance.now();
+    if (UI.exp) return; if (!U.total()) return say('Add a clip first.', true); UI.stopPv(); const ctl = new AbortController(); UI.exp = ctl; setChip('loading', 'Exporting…'); $('eb').disabled = true; $('xb').disabled = false; $('out').innerHTML = ''; const t0 = performance.now();
     const st = $('st'), pg = $('pg'); st.textContent = 'Starting…';
     try {
       const r = await U.exportVideo({ signal: ctl.signal, onProgress: (p, i) => { const s = $('st'), g = $('pg'); if (!s) return; g.value = p; s.textContent = i.stage ? i.stage + '…' : i.done ? 'Finishing…' : Math.round(p * 100) + '%' + (i.eta ? ' · about ' + Math.max(1, Math.round(i.eta)) + ' s left' : '') + (i.fps ? ' · ' + i.fps.toFixed(0) + ' frames/s' : ''); } });
@@ -325,7 +325,7 @@
       const file = new File([r.blob], 'upright-reel.' + r.ext, { type: r.blob.type }); const out = Object.assign(r, { url: URL.createObjectURL(r.blob), poster, took, canShare: !!(navigator.canShare && navigator.canShare({ files: [file] })) }); if (UI.lastOut) URL.revokeObjectURL(UI.lastOut.url); UI.lastOut = out;
       if ($('st')) { $('st').textContent = 'Done.'; showOut(out); }
     } catch (e) { if ($('st')) $('st').textContent = e && e.name === 'AbortError' ? 'Cancelled.' : 'Export failed: ' + ((e && e.message) || e); console.error(e); }
-    UI.exp = null; if ($('eb')) { $('eb').disabled = false; $('xb').disabled = true; }
+    UI.exp = null; setChip('ready', 'Ready on your device'); if ($('eb')) { $('eb').disabled = false; $('xb').disabled = true; }
   };
   ACT.rec = async () => {
     if (UI.recording) { UI.recStop && UI.recStop(); return; }
@@ -339,7 +339,7 @@
     } catch (e) { UI.recording = false; say((e && e.name === 'NotAllowedError') ? 'Microphone access was blocked. Allow it in your browser settings.' : (e.message || 'Could not start recording.'), true); UI.syncPanels(); }
   };
   ACT.capGo = async () => {
-    const P = U.P; if (UI.capBusy) return; UI.capBusy = true; const st = $('capSt'), pg = $('capPg'), stop = $('capStop'); stop.hidden = false; pg.hidden = false; pg.removeAttribute('value'); const set = (m) => { const e = $('capSt'); if (e) e.textContent = m; };
+    const P = U.P; if (UI.capBusy) return; UI.capBusy = true; setChip('loading', 'Making captions…'); const st = $('capSt'), pg = $('capPg'), stop = $('capStop'); stop.hidden = false; pg.hidden = false; pg.removeAttribute('value'); const set = (m) => { const e = $('capSt'); if (e) e.textContent = m; };
     try {
       U.pause(); set('Preparing the audio…'); const total = U.total(), OC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
       for (const c of P.clips) { const m = U.MEDIA[c.mid]; if (m && m.kind === 'video') await U.decodeAudio(m); }
@@ -353,7 +353,7 @@
       for (let i = 0; i < segs.length - 1; i++) if (segs[i].e > segs[i + 1].s) segs[i].e = segs[i + 1].s;
       P.caps = Object.assign({ style: 'hormozi', size: .065, color: '#ffffff', hl: '#ffe14a' }, P.caps || {}, { segs }); if (!P.overlays.some((o) => o.type === 'caps')) P.overlays.push({ id: U.uid(), type: 'caps', start: 0, end: null, x: .5, y: .72, rot: 0, alpha: 1 }); U.invalidateTex(); U.changed(true); say(segs.length + ' caption lines ready. Check the text for mistakes.');
     } catch (e) { U._skipMusic = false; if (e && e.message !== 'cancelled') say(e.message || 'Captions failed.', true); set(e && e.message === 'cancelled' ? 'Stopped.' : ''); }
-    UI.capBusy = false; UI.syncPanels();
+    UI.capBusy = false; setChip('ready', 'Ready on your device'); UI.syncPanels();
   };
   ACT.capStop = () => { root.UprightWhisper.cancel(); };
   ACT.autoGo = async (el) => {
