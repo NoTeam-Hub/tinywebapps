@@ -6,7 +6,7 @@ self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) =
 self.addEventListener('fetch', (e) => {
   const r = e.request; if (r.method !== 'GET') return; const u = new URL(r.url); if (u.origin !== location.origin || !u.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
   if (r.headers.has('range')) return;
-  const cacheFirst = /\/(music|fonts|brand)\//.test(u.pathname);
+  const cacheFirst = /\/(music|fonts|brand|sample)\//.test(u.pathname);
   if (cacheFirst) { e.respondWith(caches.match(r).then((hit) => hit || fetch(r).then((res) => { if (res.ok) { const c = res.clone(); caches.open(V).then((ca) => ca.put(r, c)); } return res; }))); return; }
   e.respondWith(fetch(r).then((res) => { if (res.ok) { const c = res.clone(); caches.open(V).then((ca) => ca.put(r, c)); } return res; }).catch(() => caches.match(r, { ignoreSearch: true }).then((h) => h || caches.match('index.html'))));
 });
