@@ -49,6 +49,7 @@ h1{font:400 clamp(40px,7.4vw,92px)/.98 var(--serif);letter-spacing:-.025em;margi
 h1 em{color:var(--acc);font-style:italic}
 .sub{color:var(--mut);max-width:58ch;margin:0 auto;font-size:clamp(15px,1.8vw,18px)}
 .drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin:34px auto 0;max-width:820px;min-height:clamp(220px,34vh,330px);padding:28px;border:1.5px dashed rgba(239,234,226,.28);border-radius:28px;background:rgba(239,234,226,.025);cursor:pointer;transition:border-color .25s,background .25s,transform .25s var(--ease)}
+.hq{display:flex;align-items:flex-start;gap:10px;max-width:820px;margin:14px auto 0;padding:12px 16px;border:1px solid var(--bd,rgba(255,255,255,.14));border-radius:14px;cursor:pointer;text-align:left;font-size:14px;line-height:1.4}.hq[hidden]{display:none}.hq input{margin-top:3px;accent-color:var(--acc)}.hq b{font-weight:600}.hq small{display:block;color:var(--mut,#a8a399);font-size:12.5px;margin-top:2px}
 .drop:hover,.drop.over{border-color:var(--acc);background:rgba(255,138,91,.07)}
 .drop.over{transform:scale(1.015)}
 .drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -199,13 +200,14 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
       <span class="fmt">JPG &middot; PNG &middot; WEBP</span>
     </label>
     <div class="alt"><span>No photo handy?</span><button type="button" id="sample">Try a sample</button></div>
+    <label class="hq" id="hqRow" hidden><input type="checkbox" id="hq"><span><b>Better quality</b> <small>Uses a larger AI model (Real-ESRGAN x4plus) on your graphics card. Richer detail, especially in faces and textures, but slower and best for photos up to about 1 megapixel. One-time 33 MB download. Larger photos use the standard AI.</small></span></label>
     <p class="msg" id="msg" role="alert"></p>
     <div class="facts">
       <div><h2>Fixes itself</h2><p>Brightness, colour cast, contrast, noise, softness. Polish measures the photo and only changes what needs it.</p></div>
       <div><h2>Private by design</h2><p>The AI runs in your browser. Your photo never leaves your device and is never uploaded anywhere.</p></div>
       <div><h2>Filters on top</h2><p>Twelve looks with one intensity slider, a before and after view, and a download in JPG or PNG.</p></div>
     </div>
-    <p class="note">First run downloads the AI engine once (up to about 26 MB), then your browser keeps it. Small photos get the full AI treatment; very large photos get the light, colour and sharpness fixes without upscaling.</p>
+    <p class="note">First run downloads the AI engine once (up to about 26 MB), then your browser keeps it. Better quality mode adds one more 33 MB download. Small photos get the full AI treatment; very large photos get the light, colour and sharpness fixes without upscaling.</p>
   </section>
 
   <section id="work" class="work" hidden>
@@ -250,7 +252,7 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
   <div class="legal-grid">
     <section><h2>Privacy</h2><p>Photos are processed in your browser. They are not uploaded to or stored by this site. The page sets no cookies, runs no ads and has no visitor tracking. The AI engine and model are saved in your browser cache so the page starts faster next time. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
     <section><h2>Terms of use</h2><p>You are responsible for having the right to edit and use every image you process. Results are made automatically, can be imperfect, and are provided as is, without warranty of any kind. AI upscaling can invent plausible detail that was not in the original, so do not rely on it for evidence, identification or records. Check each result before you use it.</p></section>
-    <section><h2>Credits</h2><p>Detail rebuilding uses the Real-ESRGAN general model (realesr-general-x4v3, BSD-3-Clause) by Xintao Wang and colleagues, converted to ONNX for this site, and ONNX Runtime Web (MIT). Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The example image was created for this site. Polish is an independent project and is not affiliated with or endorsed by any other photo-enhancement service.</p></section>
+    <section><h2>Credits</h2><p>Detail rebuilding uses the Real-ESRGAN general model (realesr-general-x4v3) and, in Better quality mode, the Real-ESRGAN x4plus model (RRDBNet), both BSD-3-Clause, by Xintao Wang and colleagues, converted to ONNX for this site, and ONNX Runtime Web (MIT). Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The example image was created for this site. Polish is an independent project and is not affiliated with or endorsed by any other photo-enhancement service.</p></section>
   </div>
   <div class="legal-base">
     <div class="legal-text">
@@ -602,16 +604,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
 (function () {
   'use strict';
   const $ = (s) => document.querySelector(s);
-  const MODEL = 'model/polish-x4-11a68d5056c0.onnx';
-  const MAX_PX = 16e6, AI_CAP_GPU = 2.2e6, AI_CAP_CPU = 3.2e5, PREVIEW = 1400;
-  const S = { ep: '', src: null, name: 'photo', out: null, plan: null, strength: 1, filter: 'none', fk: 1, token: 0, eng: null, ep: '', baseP: null, enhP: null, pw: 0, ph: 0 };
+  const MODEL = 'model/polish-x4-11a68d5056c0.onnx', HQ_MODEL = 'model/polish-hq-9db835b12175.onnx', HQ_SHA = '9db835b12175a17247fff6ed2fe1a3e8d0f0ca93de829a50ff48d29616d15ea6';
+  const MAX_PX = 16e6, AI_CAP_GPU = 2.2e6, AI_CAP_CPU = 3.2e5, AI_CAP_HQ = 1.2e6, PREVIEW = 1400;
+  const S = { ep: '', src: null, name: 'photo', out: null, plan: null, strength: 1, filter: 'none', fk: 1, token: 0, eng: null, ep: '', hq: false, hqOk: false, baseP: null, enhP: null, pw: 0, ph: 0 };
   const tick = () => new Promise((r) => setTimeout(r, 16));
   const say = (t) => { $('#msg').textContent = t || ''; };
   const filterOf = (id) => Polish.FILTERS.find((f) => f.id === id);
 
 
   /* ---------- model chip and report ---------- */
-  const FILES = {"model/polish-x4-11a68d5056c0.onnx": 4859154, "model/selftest.bin": 208896, "worker.js": 5092, "polish.js": 14096, "vendor/ort.wasm.min.js": 49026, "vendor/ort-wasm-simd-threaded.wasm": 11246032, "vendor/ort-wasm-simd-threaded.mjs": 24618, "vendor/ort.webgpu.min.js": 333594, "vendor/ort-wasm-simd-threaded.jsep.wasm": 21663894, "vendor/ort-wasm-simd-threaded.jsep.mjs": 46839}, MODEL_SHA = '1b724e1c31d8bbc2a661ed52efc5ce14ffa0db28e79f5abb39e8ac7919d96416';
+  const FILES = {"model/polish-hq-9db835b12175.onnx": 33509509, "model/selftest-hq.bin": 52224, "model/polish-x4-11a68d5056c0.onnx": 4859154, "model/selftest.bin": 208896, "worker.js": 5092, "polish.js": 14096, "vendor/ort.wasm.min.js": 49026, "vendor/ort-wasm-simd-threaded.wasm": 11246032, "vendor/ort-wasm-simd-threaded.mjs": 24618, "vendor/ort.webgpu.min.js": 333594, "vendor/ort-wasm-simd-threaded.jsep.wasm": 21663894, "vendor/ort-wasm-simd-threaded.jsep.mjs": 46839}, MODEL_SHA = '1b724e1c31d8bbc2a661ed52efc5ce14ffa0db28e79f5abb39e8ac7919d96416';
   const chip = $('#model'), chipText = $('#modelText'), retryBtn = $('#modelRetry');
   let lastErr = '', checkLines = null;
   function setChip(state, text) { chip.dataset.state = state; chipText.textContent = text; retryBtn.hidden = state !== 'error'; }
@@ -623,7 +625,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       'WebGPU: ' + await gpuInfo(), 'Cross-origin isolated: ' + (self.crossOriginIsolated ? 'yes' : 'no') + ' (the engine runs single-threaded on the CPU path)',
       'Engine: ' + (S.ep ? (S.ep === 'webgpu' ? 'GPU (WebGPU), checked against a known answer' : 'CPU (WebAssembly)') : 'not started') + '   state: ' + chip.dataset.state,
       'AI limits: up to ' + (AI_CAP_CPU / 1e3) + ' thousand pixels on the CPU, up to ' + (AI_CAP_GPU / 1e6) + ' million on the GPU',
-      'Model: Real-ESRGAN realesr-general-x4v3 (ONNX), ' + MODEL, 'Last error: ' + (lastErr || 'none'), '', 'Files (expected size):'];
+      'Model: Real-ESRGAN realesr-general-x4v3 (ONNX), ' + MODEL, 'Better quality: ' + (S.hqOk ? (S.hq ? 'on' : 'available, off') + ', Real-ESRGAN x4plus fp16 (ONNX), ' + HQ_MODEL + ', up to ' + (AI_CAP_HQ / 1e6) + ' million pixels' : 'not available (needs WebGPU)'), 'Last error: ' + (lastErr || 'none'), '', 'Files (expected size):'];
     Object.keys(FILES).forEach((f) => L.push('  ' + f + '  ' + FILES[f] + ' bytes' + (checkLines && checkLines[f] ? '  ' + checkLines[f] : '')));
     return L.join('\n');
   }
@@ -633,30 +635,31 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   $('#reportCopy').addEventListener('click', async () => { const t = $('#reportText'); try { await navigator.clipboard.writeText(t.value); } catch (e) { t.select(); document.execCommand('copy'); } $('#reportCopy').textContent = 'Copied'; setTimeout(() => { $('#reportCopy').textContent = 'Copy'; }, 1500); });
   $('#reportCheck').addEventListener('click', async () => {
     const btn = $('#reportCheck'); btn.disabled = true; checkLines = {};
-    const gpu = !!navigator.gpu, names = Object.keys(FILES).filter((f) => gpu || !/webgpu|jsep/.test(f)), skip = Object.keys(FILES).filter((f) => !names.includes(f));
+    const gpu = !!navigator.gpu, names = Object.keys(FILES).filter((f) => gpu || !/webgpu|jsep|-hq/.test(f)), skip = Object.keys(FILES).filter((f) => !names.includes(f));
     skip.forEach((f) => { checkLines[f] = '(not needed here)'; });
     for (let i = 0; i < names.length; i++) {
       btn.textContent = 'Checking ' + (i + 1) + '/' + names.length; const f = names[i];
       try { const r = await fetch(f, { cache: 'no-cache' }); if (!r.ok) { checkLines[f] = 'MISSING (HTTP ' + r.status + ')'; continue; }
         const buf = await r.arrayBuffer(); let msg = buf.byteLength === FILES[f] ? 'OK' : 'WRONG SIZE (' + buf.byteLength + ')';
-        if (f === MODEL && crypto.subtle) { const d = await crypto.subtle.digest('SHA-256', buf); const hex = [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); msg += hex === MODEL_SHA ? ', checksum OK' : ', CHECKSUM MISMATCH'; }
+        if ((f === MODEL || f === HQ_MODEL) && crypto.subtle) { const d = await crypto.subtle.digest('SHA-256', buf); const hex = [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); msg += hex === (f === HQ_MODEL ? HQ_SHA : MODEL_SHA) ? ', checksum OK' : ', CHECKSUM MISMATCH'; }
         checkLines[f] = msg; } catch (e) { checkLines[f] = 'ERROR ' + e.message; }
     }
     btn.textContent = 'Check files'; btn.disabled = false; $('#reportText').value = await buildReport();
   });
 
   /* ---------- engine (worker) ---------- */
-  function startWorker(mode, limit) {
+  function startWorker(mode, limit, opt) {
+    opt = opt || {};
     return new Promise((res, rej) => {
-      const w = new Worker('worker.js?mode=' + mode + '&v=1');
+      const w = new Worker('worker.js?mode=' + mode + '&v=2');
       const t = setTimeout(() => { w.terminate(); rej(new Error('engine start timed out')); }, limit);
       w.onmessage = (e) => {
         const m = e.data;
-        if (m.type === 'ready') { clearTimeout(t); w.onmessage = null; S.ep = m.ep; setChip('ready', m.ep === 'webgpu' ? 'AI ready · GPU' : 'AI ready · CPU'); res({ w, ep: m.ep }); }
+        if (m.type === 'ready') { clearTimeout(t); w.onmessage = null; S.ep = m.ep; if (!opt.hq) S.ep = m.ep; setChip('ready', opt.hq ? 'Better quality ready · GPU' : m.ep === 'webgpu' ? 'AI ready · GPU' : 'AI ready · CPU'); res({ w, ep: m.ep, hq: !!opt.hq }); }
         else if (m.type === 'fail') { clearTimeout(t); w.terminate(); rej(new Error(m.error)); }
       };
       w.onerror = (ev) => { clearTimeout(t); w.terminate(); rej(new Error(ev.message || 'engine error')); };
-      w.postMessage({ type: 'init', modelUrl: MODEL });
+      w.postMessage(Object.assign({ type: 'init', modelUrl: MODEL }, opt.init || {}));
     });
   }
   let enginePromise = null;
@@ -673,6 +676,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     p.catch((e) => { if (!forceCpu) enginePromise = null; lastErr = e.message; setChip('error', 'AI engine unavailable'); });
     return p;
   }
+  let hqPromise = null;
+  function getHQEngine() {
+    if (hqPromise) return hqPromise;
+    setChip('loading', 'Loading Better quality AI');
+    const p = startWorker('webgpu', 240000, { hq: true, init: { modelUrl: HQ_MODEL, tile: 96, pad: 16, selftest: 'model/selftest-hq.bin', stn: 16 } });
+    hqPromise = p;
+    p.catch((e) => { hqPromise = null; lastErr = 'Better quality: ' + e.message; setChip(S.ep ? 'ready' : 'idle', S.ep ? (S.ep === 'webgpu' ? 'AI ready · GPU' : 'AI ready · CPU') : 'AI engine not loaded'); });
+    return p;
+  }
+  if (navigator.gpu && window.Worker) navigator.gpu.requestAdapter().then((a) => { if (a) { S.hqOk = true; $('#hqRow').hidden = false; } }).catch(() => {});
+  $('#hq').addEventListener('change', (e) => { S.hq = e.target.checked; if (S.hq) getHQEngine().catch(() => {}); });
   const warm = () => { if (!enginePromise && window.Worker) getEngine().catch(() => {}); };
   ['pointerdown', 'dragenter', 'keydown'].forEach((ev) => addEventListener(ev, warm, { once: true, passive: true }));
 
@@ -748,13 +762,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     setStep(1); setProg(0.08); await tick(); if (!alive()) return;
 
     // can the AI take this photo?
-    let eng = null, aiNote = '';
-    if (px <= AI_CAP_GPU && window.Worker) {
+    let eng = null, aiNote = '', usedHQ = false;
+    if (S.hq && S.hqOk && window.Worker) {
+      if (px > AI_CAP_HQ) aiNote = 'This photo is larger than Better quality handles (about 1 megapixel), so Polish used the standard AI.';
+      else {
+        $('#eta').textContent = 'Starting Better quality. The first run downloads it once (33 MB).';
+        try { eng = await getHQEngine(); usedHQ = true; } catch (e) { console.warn('Better quality unavailable:', e.message); aiNote = 'Better quality could not start on this device, so Polish used the standard AI.'; }
+        if (!alive()) return;
+      }
+    }
+    if (!eng && px <= AI_CAP_GPU && window.Worker) {
       $('#eta').textContent = 'Starting the AI engine. The first run downloads it once.';
       try { eng = await getEngine(); } catch (e) { console.warn('AI engine unavailable:', e.message); aiNote = 'The AI engine could not start here, so Polish used its classic enhancement.'; }
       if (!alive()) return;
       if (eng && px > AI_CAP_CPU && eng.ep !== 'webgpu') { eng = null; aiNote = 'This photo is large for AI on a processor, so Polish fixed light, colour and sharpness without upscaling. A browser with WebGPU (recent Chrome or Edge) handles bigger photos.'; }
-    } else if (px > AI_CAP_GPU) aiNote = 'Large photo, so Polish fixed light, colour and sharpness without upscaling.';
+    } else if (!eng && px > AI_CAP_GPU) aiNote = 'Large photo, so Polish fixed light, colour and sharpness without upscaling.';
     const plan = Polish.makePlan(an, W, H, !!eng);
     S.plan = plan;
 
@@ -770,7 +792,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       catch (e) {
         if (!alive() || e.message === 'cancelled') return;
         console.warn('AI run failed on', eng.ep, e.message); lastErr = 'AI run failed on ' + eng.ep + ': ' + e.message;
-        if (eng.ep === 'webgpu' && px <= AI_CAP_CPU) { // fall back to the processor
+        if (usedHQ) { // fall back to the standard model
+          try { usedHQ = false; aiNote = 'Better quality failed on this device, so Polish used the standard AI.'; eng = await getEngine(); S.eng = eng; res = await runAI(eng, W, H, new Uint8ClampedArray(sx.getImageData(0, 0, W, H).data), plan.scale, onProg); } catch (e3) { res = null; }
+        } else if (eng.ep === 'webgpu' && px <= AI_CAP_CPU) { // fall back to the processor
           try { enginePromise = null; eng = await getEngine(true); S.eng = eng; res = await runAI(eng, W, H, new Uint8ClampedArray(sx.getImageData(0, 0, W, H).data), plan.scale, onProg); } catch (e2) { res = null; }
         }
       }
@@ -783,6 +807,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       Object.assign(plan, { ai: false, scale: 1 }); plan.items = Polish.makePlan(an, W, H, false).items; Object.assign(plan, Polish.makePlan(an, W, H, false));
       img = sx.getImageData(0, 0, W, H);
     }
+    if (usedHQ && plan.ai && plan.items[0]) plan.items[0].t = 'Rebuilt detail with Better quality AI';
     setStep(3); setProg(0.86, ''); await tick(); if (!alive()) return;
     Polish.enhance(img, plan);
     setProg(1); await tick();

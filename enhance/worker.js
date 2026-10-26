@@ -1,14 +1,17 @@
-/* Polish worker: runs the Real-ESRGAN (general x4 v3) ONNX model on tiles, entirely on this device.
+/* Polish worker: runs a Real-ESRGAN x4 ONNX model (general v3, or x4plus for Better quality) on tiles, entirely on this device.
    ?mode=webgpu tries the GPU first (and checks it against a known answer); ?mode=wasm uses the CPU. */
 const MODE = new URL(self.location.href).searchParams.get('mode') || 'wasm';
 const BASE = new URL('./', self.location.href).href;
 let ORT, session, EP = '';
-const TILE = 104, PAD = 12, IN = TILE + PAD * 2;   // fixed input size keeps GPU shaders compiled once
+let TILE = 104, PAD = 12, IN = TILE + PAD * 2, STFILE = 'model/selftest.bin', STN = 32;   // fixed input size keeps GPU shaders compiled once
 const cancelled = { v: false };
 
 function post(m, t) { self.postMessage(m, t || []); }
 
-async function init(modelUrl) {
+async function init(modelUrl, o) {
+  o = o || {};
+  if (o.tile) { TILE = o.tile; PAD = o.pad || PAD; IN = TILE + PAD * 2; }
+  if (o.selftest) { STFILE = o.selftest; STN = o.stn || STN; }
   importScripts(BASE + (MODE === 'webgpu' ? 'vendor/ort.webgpu.min.js' : 'vendor/ort.wasm.min.js'));
   ORT = self.ort;
   ORT.env.wasm.wasmPaths = BASE + 'vendor/';
@@ -23,8 +26,8 @@ async function init(modelUrl) {
 
 // the GPU must reproduce a known answer (made with the CPU) or we refuse to use it
 async function selfTest() {
-  const raw = new Float32Array(await (await fetch(BASE + 'model/selftest.bin')).arrayBuffer());
-  const n = 32, inN = 3 * n * n, input = raw.slice(0, inN), want = raw.slice(inN);
+  const raw = new Float32Array(await (await fetch(BASE + STFILE)).arrayBuffer());
+  const n = STN, inN = 3 * n * n, input = raw.slice(0, inN), want = raw.slice(inN);
   const out = (await session.run({ input: new ORT.Tensor('float32', input, [1, 3, n, n]) })).output.data;
   let err = 0; for (let i = 0; i < want.length; i++) err += Math.abs(out[i] - want[i]);
   err /= want.length;
@@ -87,7 +90,7 @@ async function run(w, h, rgba, scale) {
 self.onmessage = async (e) => {
   const m = e.data;
   try {
-    if (m.type === 'init') { await init(m.modelUrl); post({ type: 'ready', ep: EP }); }
+    if (m.type === 'init') { await init(m.modelUrl, m); post({ type: 'ready', ep: EP }); }
     else if (m.type === 'run') await run(m.width, m.height, new Uint8ClampedArray(m.rgba), m.scale);
     else if (m.type === 'cancel') cancelled.v = true;
   } catch (err) { post({ type: 'fail', error: String(err && err.message || err), ep: EP || MODE }); }
