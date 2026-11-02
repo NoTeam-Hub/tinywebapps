@@ -477,6 +477,7 @@
     $('#bUndo').onclick = undo; $('#bRedo').onclick = redo; $('#bAll').onclick = () => { const all = S.pages.some((p) => !p.sel); S.pages.forEach((p) => { p.sel = all; }); renderPdf(); };
     $('#bDelSel').onclick = () => run('delete selected'); $('#bRotSel').onclick = () => run('rotate selected right');
     $('#fileChips').addEventListener('click', (e) => { const b = e.target.closest('button[data-fid]'); if (!b) return; snap(); S.pages = S.pages.filter((p) => String(p.fid) !== b.dataset.fid); renderAll(); say('File removed. Undo brings it back.'); });
+    $('#bHome').onclick = () => { S.images.forEach((i) => i.out && URL.revokeObjectURL(i.out.url)); S.images = []; S.pages = []; S.hist = []; S.fut = []; S.o = { imgPage: 'a4', num: null, wm: null, comp: null, name: 'docsmith' }; S.started = false; document.body.classList.remove('edit'); $('#cmd').value = ''; renderAll(); say('Type an instruction, or tap an example.'); window.scrollTo(0, 0); };
     $('#bClear').onclick = () => { snap(); S.pages = []; renderAll(); say('Cleared.'); };
     $('#bDl').onclick = doDownload; $('#bToImg').onclick = () => run('convert pages to jpg');
     // options
