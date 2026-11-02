@@ -221,9 +221,10 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
     <label>Compression<select id="oComp"><option value="none">None (keeps text)</option><option value="low">Light</option><option value="medium">Medium</option><option value="high">Strong</option><option value="extreme">Smallest</option><option value="kb">Target size…</option></select></label>
     <label hidden>Target KB<input type="number" id="oKb" min="20" step="10"></label>
     <label>Images on pages<select id="oImg"><option value="a4">Fit on A4</option><option value="letter">Fit on Letter</option><option value="original">Original size</option></select></label>
+    <label>Download as<span class="inl"><input type="checkbox" id="oEach"> one PDF per page (zip)</span></label>
     <label>File name<input type="text" id="oName" maxlength="60"></label>
    </div>
-   <div class="row"><button type="button" class="p" id="bDl">Download PDF</button><button type="button" id="bToImg">Pages to images (zip)</button></div>
+   <div class="row"><button type="button" class="p" id="bDl">Download PDF</button><button type="button" id="bEach">Split every page (zip)</button><button type="button" id="bToImg">Pages to images (zip)</button></div>
    <p class="m">Select pages by tapping them, then say &ldquo;delete selected&rdquo; or &ldquo;rotate selected left&rdquo;. Drag pages to reorder them, or use the arrows.</p>
   </div>
  </section>
@@ -769,7 +770,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
 </footer>
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="vendor/fflate.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=34"></script>
 <script>
 (function(){const $=id=>document.getElementById(id),SITE='https://tinywebapps.in/docsmith/',web=/^https?:$/.test(location.protocol),url=web?location.origin+location.pathname:SITE,text='Docsmith: merge, split, rotate, compress and convert PDFs and images by typing what you want. Free and private.';
 $('shWa').href='https://wa.me/?text='+encodeURIComponent(text+' '+url);$('shX').href='https://x.com/intent/post?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url);

@@ -1,7 +1,7 @@
 /* Docsmith: PDF and image toolkit with a plain-language command bar. Everything runs in this browser tab. */
 (function () {
   'use strict';
-  const $ = (s, r) => (r || document).querySelector(s);
+  const $ = (s, r) => (r || document).querySelector(s) || document.createElement('div').appendChild(document.createElement('div')); /* missing element -> harmless detached stub, so an out-of-date cached page can never break the app */
   const S = { tab: 'pdf', started: false, files: {}, pages: [], images: [], hist: [], fut: [], busy: false,
     o: { imgPage: 'a4', num: null, wm: null, comp: null, name: 'docsmith' },
     img: { fmt: 'jpg', w: 0, h: 0, pct: 0, kb: 0, q: 0.9, gray: false, rot: 0, flip: false } };
@@ -126,7 +126,7 @@
     [...g.children].forEach((el, i) => { const p = S.pages[i], c = el.querySelector('canvas'); if (c) thumbFor(p, c); });
     const o = S.o; $('#oNum').checked = !!o.num; $('#oNumPos').value = o.num ? o.num.pos : 'bc'; $('#oNumFmt').value = o.num ? o.num.fmt : 'n';
     $('#oWm').value = o.wm ? o.wm.text : ''; $('#oComp').value = o.comp ? (o.comp.kb ? 'kb' : o.comp.level) : 'none'; $('#oKb').value = o.comp && o.comp.kb ? o.comp.kb : ''; $('#oKb').parentElement.hidden = !(o.comp && o.comp.kb);
-    $('#oImg').value = o.imgPage; $('#oName').value = o.name;
+    $('#oEach').checked = !!o.each; $('#oImg').value = o.imgPage; $('#oName').value = o.name;
   }
   function renderImgs() {
     const L = $('#imgList'), n = S.images.length;
@@ -220,6 +220,7 @@
   async function doDownload() {
     if (!S.pages.length) return say('Add a PDF or some images first.', true);
     if (S.busy) return;
+    if (S.o.each && S.pages.length > 1) return doSplit(S.pages.map((_, i) => [i]));
     setBusy(true, 'Building your PDF…'); prog(0.02);
     try {
       const orig = S.pages.reduce((a, p) => a + (S.files[p.fid] ? (S.files[p.fid].size / (S.files[p.fid].n || 1)) : 0), 0);
@@ -236,7 +237,7 @@
     if (groups.length < 2) return say('That would give only one file. Try "split every 2 pages".', true);
     setBusy(true, 'Splitting…'); const files = {};
     try {
-      for (let g = 0; g < groups.length; g++) { prog(g / groups.length); let bytes = await buildPdf(groups[g].map((i) => S.pages[i])); if (S.o.comp) bytes = await compressPdf(bytes, S.o.comp); files[fileName() + '-part' + String(g + 1).padStart(2, '0') + '.pdf'] = bytes; await tick(); }
+      for (let g = 0; g < groups.length; g++) { prog(g / groups.length); let bytes = await buildPdf(groups[g].map((i) => S.pages[i])); if (S.o.comp) bytes = await compressPdf(bytes, S.o.comp); files[fileName() + '-' + (g + 1) + '.pdf'] = bytes; await tick(); }
       saveBlob(new Blob([fflate.zipSync(files, { level: 0 })], { type: 'application/zip' }), fileName() + '-split.zip'); say('Saved ' + groups.length + ' PDFs in ' + fileName() + '-split.zip.');
     } catch (e) { console.error(e); say('Could not split: ' + e.message, true); }
     setBusy(false);
@@ -486,6 +487,8 @@
     $('#oWm').oninput = (e) => { const v = e.target.value.trim(); S.o.wm = v ? { text: v.slice(0, 40), opacity: S.o.wm ? S.o.wm.opacity : 0.25 } : null; };
     $('#oComp').onchange = (e) => { const v = e.target.value; snap(); S.o.comp = v === 'none' ? null : v === 'kb' ? { kb: +$('#oKb').value || 500 } : { level: v }; $('#oKb').parentElement.hidden = v !== 'kb'; if (v === 'kb' && !$('#oKb').value) $('#oKb').value = 500; };
     $('#oKb').oninput = (e) => { if (S.o.comp && S.o.comp.kb !== undefined) S.o.comp = { kb: Math.max(20, +e.target.value || 500) }; };
+    $('#oEach').onchange = (e) => { S.o.each = e.target.checked; };
+    $('#bEach').onclick = () => doSplit(S.pages.map((_, i) => [i]));
     $('#oImg').onchange = (e) => { S.o.imgPage = e.target.value; };
     $('#oName').oninput = (e) => { S.o.name = e.target.value; };
     // images
