@@ -42,7 +42,7 @@
   }
   async function addPdf(file) {
     const bytes = await file.arrayBuffer(); let lib;
-    try { lib = await PDFLib.PDFDocument.load(bytes); }
+    try { lib = await PDFLib.PDFDocument.load(bytes); lib.getPageCount(); }
     catch (e) { toast(file.name + ': this PDF is password protected or damaged, so it can not be opened.', 5000); return 0; }
     const f = { id: nid(), name: file.name, kind: 'pdf', bytes, lib, n: lib.getPageCount(), doc: null, size: file.size };
     S.files[f.id] = f;
@@ -69,12 +69,14 @@
     list = [...list]; if (!list.length) return;
     const pdfs = list.filter(isPdf), imgs = list.filter((f) => !isPdf(f) && isImg(f));
     if (!pdfs.length && !imgs.length) { toast('Docsmith opens PDF files and images (JPG, PNG, WebP, GIF, BMP, AVIF).'); return; }
-    if (!S.started) { S.started = true; document.body.classList.add('edit'); if (!pdfs.length && !(after && after.mode === 'pdf')) setTab('img', true); }
+    const want = after && after.mode ? after.mode : pdfs.length ? 'pdf' : !S.started ? 'img' : S.tab;
+    S.started = true; document.body.classList.add('edit'); setTab(want, true);
     setBusy(true, 'Opening files…');
     let added = 0;
     for (const f of pdfs) added += await addPdf(f);
     if (imgs.length) { if (S.tab === 'img') added += await addImgItems(imgs); else for (const f of imgs) added += await addImgPage(f); }
     setBusy(false); renderAll();
+    if (!added && !S.pages.length && !S.images.length) { S.started = false; document.body.classList.remove('edit'); setTab('pdf', true); renderAll(); window.scrollTo(0, 0); return; }
     if (added && S.tab === 'img') processImages();
     if (after && after.cmd) run(after.cmd); else if (after && after.fill) { $('#cmd').value = after.fill; $('#cmd').focus(); $('#cmd').select(); say('Files added. Press Do it to run "' + after.fill + '", or type something else.'); }
   }
@@ -105,6 +107,7 @@
 
   /* ---------- rendering ---------- */
   function setTab(t, silent) {
+    if (t !== 'pdf' && t !== 'img') t = 'pdf';
     S.tab = t; document.querySelectorAll('#tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.t === t)));
     $('#pdfPane').hidden = t !== 'pdf'; $('#imgPane').hidden = t !== 'img';
     $('#cmd').placeholder = t === 'pdf' ? 'Type what to do: delete pages 2-4, rotate all right, add page numbers, compress to 500 KB…' : 'Type what to do: convert to png, resize to 1080 px wide, compress to 100 KB, grayscale…';
@@ -228,7 +231,7 @@
       if (S.o.comp) { prog(0.5, 'Compressing…'); bytes = await compressPdf(bytes, S.o.comp, (f) => prog(f)); }
       const blob = new Blob([bytes], { type: 'application/pdf' }); saveBlob(blob, fileName() + '.pdf');
       const miss = S.o.comp && S.o.comp.kb && blob.size > S.o.comp.kb * 1024 * 1.05;
-      say('Saved ' + fileName() + '.pdf · ' + S.pages.length + ' pages · ' + fmtB(blob.size) + (miss ? '. The ' + S.o.comp.kb + ' KB target could not be reached without making pages unreadable.' : orig && !S.o.comp ? ' (inputs ≈ ' + fmtB(orig) + ')' : '') + '.');
+      say('Saved ' + fileName() + '.pdf · ' + S.pages.length + (S.pages.length === 1 ? ' page' : ' pages') + ' · ' + fmtB(blob.size) + (miss ? '. The ' + S.o.comp.kb + ' KB target could not be reached without making pages unreadable.' : orig && !S.o.comp ? ' (inputs ≈ ' + fmtB(orig) + ')' : '') + '.');
     } catch (e) { console.error(e); say('Could not build the PDF: ' + e.message, true); }
     setBusy(false);
   }
@@ -437,6 +440,7 @@
     if (/\b(grayscale|greyscale|black and white|black & white|b&w|monochrome)\b/.test(t)) { s.gray = !/\b(no|remove|off|color|colour)\b/.test(t); changed = true; }
     if (/\b(rotate|turn)\b/.test(t)) { s.rot = (s.rot + (/\b180\b/.test(t) ? 180 : /\b(left|counter|anti|270)\b/.test(t) ? 270 : 90)) % 360; changed = true; }
     if (/\b(flip|mirror)\b/.test(t)) { s.flip = !s.flip; changed = true; }
+    if (!changed && /\b(split|merge|combine|delete|keep|page numbers?|watermark|reorder|reverse)\b/i.test(cmd)) return say('"' + cmd + '" works on PDFs. Open the PDF & pages tab and add a PDF first.', true);
     if (!changed) return say('I did not understand "' + cmd + '". Type "help" for examples, or tap one of the suggestions below.', true);
     if (!S.images.length) { renderImgs(); return say('Settings noted. Add some images and they will be converted.'); }
     renderImgs(); processImages();
@@ -446,7 +450,7 @@
 
   /* ---------- wiring ---------- */
   function wire() {
-    $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setTab(b.dataset.t); });
+    $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('button[data-t]'); if (b) setTab(b.dataset.t); });
     const form = $('#cmdForm'); form.addEventListener('submit', (e) => { e.preventDefault(); run($('#cmd').value); });
     $('#ex').addEventListener('click', (e) => { const b = e.target.closest('.eg'); if (b) run(b.textContent); });
     // file inputs
@@ -457,7 +461,7 @@
     document.addEventListener('dragover', (e) => { if (S.started) e.preventDefault(); });
     $('#app').addEventListener('drop', (e) => { if (e.dataTransfer.files.length) { e.preventDefault(); addFiles(e.dataTransfer.files); } });
     document.addEventListener('paste', (e) => { const fs = [...(e.clipboardData ? e.clipboardData.files : [])]; if (fs.length) addFiles(fs); });
-    $('#tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const T = TOOLS[+b.dataset.i], inp = $('#f4'); inp.accept = T.accept; inp.onchange = (ev) => { const fs = [...ev.target.files]; ev.target.value = ''; inp.onchange = null; if (fs.length) addFiles(fs, T.after); }; inp.click(); });
+    $('#tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const T = TOOLS[+b.dataset.i], inp = $('#f4'); inp.accept = T.accept; inp.onchange = (ev) => { let fs = [...ev.target.files]; ev.target.value = ''; inp.onchange = null; if (!fs.length) return; if (/pdf/.test(T.accept) && !/image/.test(T.accept)) { const ok = fs.filter(isPdf); if (!ok.length) { toast('"' + T.t + '" needs a PDF file. Please choose a PDF.', 4500); return; } fs = ok; } else if (/image/.test(T.accept)) { const ok = fs.filter((f) => !isPdf(f) && isImg(f)); if (!ok.length) { toast('"' + T.t + '" needs image files (JPG, PNG, WebP...).', 4500); return; } fs = ok; } addFiles(fs, T.after); }; inp.click(); });
     // pdf grid
     const g = $('#grid');
     g.addEventListener('click', (e) => {
@@ -478,7 +482,7 @@
     $('#bUndo').onclick = undo; $('#bRedo').onclick = redo; $('#bAll').onclick = () => { const all = S.pages.some((p) => !p.sel); S.pages.forEach((p) => { p.sel = all; }); renderPdf(); };
     $('#bDelSel').onclick = () => run('delete selected'); $('#bRotSel').onclick = () => run('rotate selected right');
     $('#fileChips').addEventListener('click', (e) => { const b = e.target.closest('button[data-fid]'); if (!b) return; snap(); S.pages = S.pages.filter((p) => String(p.fid) !== b.dataset.fid); renderAll(); say('File removed. Undo brings it back.'); });
-    $('#bHome').onclick = () => { S.images.forEach((i) => i.out && URL.revokeObjectURL(i.out.url)); S.images = []; S.pages = []; S.hist = []; S.fut = []; S.o = { imgPage: 'a4', num: null, wm: null, comp: null, name: 'docsmith' }; S.started = false; document.body.classList.remove('edit'); $('#cmd').value = ''; renderAll(); say('Type an instruction, or tap an example.'); window.scrollTo(0, 0); };
+    $('#bHome').onclick = () => { S.images.forEach((i) => i.out && URL.revokeObjectURL(i.out.url)); S.images = []; S.pages = []; S.hist = []; S.fut = []; S.o = { imgPage: 'a4', num: null, wm: null, comp: null, name: 'docsmith' }; S.started = false; document.body.classList.remove('edit'); $('#cmd').value = ''; setTab('pdf', true); renderAll(); say('Type an instruction, or tap an example.'); window.scrollTo(0, 0); };
     $('#bClear').onclick = () => { snap(); S.pages = []; renderAll(); say('Cleared.'); };
     $('#bDl').onclick = doDownload; $('#bToImg').onclick = () => run('convert pages to jpg');
     // options
@@ -513,8 +517,8 @@
     { t: 'Rotate and reorder', d: 'Rotate, drag, move or reverse pages', accept: 'application/pdf,.pdf', after: { fill: 'rotate all right' } },
     { t: 'Images to PDF', d: 'JPG, PNG and more into one PDF', accept: 'image/*', after: { mode: 'pdf', fill: 'download' } },
     { t: 'PDF to images', d: 'Every page as JPG, PNG or WebP', accept: 'application/pdf,.pdf', after: { fill: 'convert pages to png' } },
-    { t: 'Convert images', d: 'JPG, PNG and WebP in a batch', accept: 'image/*', after: { fill: 'convert to png' } },
-    { t: 'Resize or compress images', d: 'Set pixels, percent or an exact KB limit', accept: 'image/*', after: { fill: 'compress to 100 KB' } },
+    { t: 'Convert images', d: 'JPG, PNG and WebP in a batch', accept: 'image/*', after: { mode: 'img', fill: 'convert to png' } },
+    { t: 'Resize or compress images', d: 'Set pixels, percent or an exact KB limit', accept: 'image/*', after: { mode: 'img', fill: 'compress to 100 KB' } },
     { t: 'Page numbers', d: 'Number every page, any corner', accept: 'application/pdf,.pdf', after: { fill: 'add page numbers' } },
     { t: 'Watermark', d: 'Stamp text across every page', accept: 'application/pdf,.pdf', after: { fill: 'watermark CONFIDENTIAL' } }
   ];
