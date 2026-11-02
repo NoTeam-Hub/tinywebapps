@@ -185,6 +185,8 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
 .ir .ia{display:flex;gap:6px}.ir .ia button{padding:5px 10px;font-size:13px}
 .edit .tools{display:none}
 @media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}.ir{grid-template-columns:48px minmax(0,1fr) auto}.ir .it{width:48px;height:48px}.cmdbar button{padding:10px 12px}}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.chips:empty{display:none}.chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:6px 6px 6px 12px;border:1px solid var(--line,#2a2c33);border-radius:999px;font-size:13px;background:rgba(255,255,255,.04)}.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}.chip em{font-style:normal;opacity:.6;font-size:12px}.chip button{border:0;border-radius:999px;width:26px;height:26px;cursor:pointer;background:rgba(255,255,255,.1);color:inherit;font-size:16px;line-height:1}
 </style>
 </head><body>
 <header class="top"><div class="lhs"><a class="back" href="../">&larr; tinywebapps.in</a><div class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="9" fill="url(#dg)"/><path d="M10 6.5h8l5 5V25a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 019 25V8A1.5 1.5 0 0110 6.5z" stroke="#12102a" stroke-width="1.7" stroke-linejoin="round"/><path d="M12.5 17h7M12.5 21h4.5" stroke="#12102a" stroke-width="1.7" stroke-linecap="round"/><defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8b7cff"/><stop offset="1" stop-color="#6eaaff"/></linearGradient></defs></svg>Docsmith</div></div><div class="modelbar"><span class="chip" data-state="ready" role="status"><i></i><span>Ready on your device</span></span></div></header>
@@ -204,8 +206,9 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
   <div class="tb"><b class="mo" id="pcount"></b><span class="sp"></span>
    <label class="btn">+ Add files<input id="f2" type="file" accept="application/pdf,.pdf,image/*" multiple hidden></label>
    <button type="button" id="bAll">Select all</button><button type="button" id="bRotSel">Rotate selected</button><button type="button" id="bDelSel">Delete selected</button>
-   <button type="button" id="bUndo">↶ Undo</button><button type="button" id="bRedo">↷ Redo</button><button type="button" id="bClear">Clear</button></div>
+   <button type="button" id="bUndo">↶ Undo</button><button type="button" id="bRedo">↷ Redo</button><button type="button" id="bClear">Clear all</button></div>
   <p class="empty" id="pdfEmpty" hidden>No pages yet. Add a PDF or some images.</p>
+  <div class="chips" id="fileChips"></div>
   <div class="grid" id="grid"></div>
   <div class="card out" id="pdfOut" hidden>
    <div class="g">
