@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en"><head>
+<script>if(!/\/$|\.html?$/.test(location.pathname))location.replace(location.pathname+"/"+location.search+location.hash);</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Docsmith: free PDF and image toolkit, just type what you want</title>
+<meta name="description" content="Merge, split, rotate, compress and convert PDFs and images by typing plain instructions. Free, private, and nothing is uploaded.">
+<meta name="theme-color" content="#0b0c0e">
+<link rel="canonical" href="https://tinywebapps.in/docsmith/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Tiny Web Apps">
+<meta property="og:title" content="Docsmith: free PDF and image toolkit, just type what you want"><meta property="og:description" content="Merge, split, rotate, compress and convert PDFs and images by typing plain instructions. Free, private, and nothing is uploaded.">
+<meta property="og:url" content="https://tinywebapps.in/docsmith/"><meta property="og:image" content="https://tinywebapps.in/og/docsmith.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Docsmith, a free PDF and image toolkit">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Docsmith: free PDF and image toolkit, just type what you want"><meta name="twitter:description" content="Merge, split, rotate, compress and convert PDFs and images by typing plain instructions. Free, private, and nothing is uploaded."><meta name="twitter:image" content="https://tinywebapps.in/og/docsmith.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Docsmith","url":"https://tinywebapps.in/docsmith/","description":"Merge, split, rotate, compress and convert PDFs and images by typing plain instructions. Free, private, and nothing is uploaded.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"Tiny Web Apps","url":"https://tinywebapps.in/"}}</script>
+<style>
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces.woff2) format("woff2")}
+@font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-i.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-weight:400 700;font-display:swap;src:url(fonts/instrument.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:400;font-display:swap;src:url(fonts/jbmono.woff2) format("woff2")}
+
+:root{--line:var(--bd);--mut:var(--mu);--dim:#76726a;--ink:var(--fg);--acc:var(--ac);--mono:var(--mo);--sans:var(--sa);--serif:var(--se);--panel:var(--cd);--bg:#0b0c0e;--fg:#ECE8DF;--mu:#8d8b84;--ac:#8B7CFF;--cd:#121417;--bd:rgba(236,232,223,.13);--se:"Fraunces",Georgia,serif;--sa:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mo:"JetBrains Mono",ui-monospace,Menlo,monospace;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;background:var(--bg);color:var(--fg);font:15px/1.55 var(--sa);padding-bottom:env(safe-area-inset-bottom,0px)}a{color:inherit}
+.bar{display:flex;align-items:center;gap:14px;max-width:1180px;margin:auto;padding:16px 20px;flex-wrap:wrap}.back{font:12px var(--mo);color:var(--mu);text-decoration:none}.back:hover{color:var(--ac)}.brand{font:500 20px var(--se);flex:1}
+.chip{display:inline-flex;gap:8px;align-items:center;font:11px var(--mo);color:var(--mu);border:1px solid var(--bd);border-radius:99px;padding:5px 12px;background:transparent;cursor:pointer}.chip i{width:7px;height:7px;border-radius:50%;background:#5ad07a}.chip.bad i{background:#e5484d}.chip u{color:var(--fg)}
+.intro{max-width:760px;margin:auto;padding:36px 20px 8px;text-align:center}.eyebrow,.mo{font:11px var(--mo);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}.eyebrow{color:var(--ac)}
+h1{font:400 clamp(38px,7vw,62px)/1.04 var(--se);margin:10px 0 14px;letter-spacing:-.01em}h1 i{color:var(--ac)}.lead{color:var(--mu);font-size:17px;max-width:600px;margin:0 auto 26px}
+.drop{display:block;border:1.5px dashed rgba(236,232,223,.28);border-radius:22px;padding:54px 24px;background:linear-gradient(180deg,rgba(139,124,255,.06),transparent);cursor:pointer;transition:.15s}.drop:hover,.drop.on,.drop:focus-visible{border-color:var(--ac);background:rgba(139,124,255,.10);outline:0}
+.drop b{display:block;font:500 24px var(--se);margin-bottom:4px}.drop span{display:block;margin-top:10px;font:11px var(--mo);color:var(--mu);letter-spacing:.08em}input[type=file]{display:none}
+.lnk{background:none;border:0;color:var(--mu);margin-top:16px;cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:4px}.lnk:hover{color:var(--ac)}
+#app{display:none;max-width:1180px;margin:auto;padding:4px 20px 20px}.edit #app{display:block}.edit .intro{display:none}
+main{display:grid;grid-template-columns:minmax(260px,400px) 1fr;gap:16px;align-items:start}@media(max-width:820px){main{grid-template-columns:1fr}}
+.stage{position:sticky;top:8px;display:flex;flex-direction:column;align-items:center;gap:8px}.cw{position:relative;height:min(66vh,600px);max-width:100%;background:#000;border:1px solid var(--bd);border-radius:16px;overflow:hidden}
+canvas{width:100%;height:100%;display:block}.safe{position:absolute;inset:12% 12% 20% 5%;border:2px dashed rgba(255,255,255,.6);border-radius:6px;pointer-events:none;display:none}
+.tr{display:flex;gap:8px;align-items:center;width:100%}.tr input{flex:1}.m{color:var(--mu);font-size:12px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:12px 16px;margin-bottom:12px}summary{cursor:pointer;font:500 18px var(--se);list-style:none}summary::after{content:"+";float:right;color:var(--ac)}details[open]>summary::after{content:"–"}
+button,.btn{background:transparent;color:var(--fg);border:1px solid var(--bd);border-radius:10px;padding:6px 12px;font:inherit;cursor:pointer;display:inline-block;text-decoration:none}button:hover,.btn:hover{border-color:var(--ac)}.p{background:var(--ac)!important;border-color:var(--ac)!important;color:#0b0c0e!important;font-weight:600}button:disabled{opacity:.45}
+input,select,textarea{font:inherit;color:var(--fg);background:#0b0c0e;border:1px solid var(--bd);border-radius:8px;padding:4px 6px;max-width:100%}input[type=range]{padding:0;accent-color:var(--ac)}input[type=number]{width:72px}textarea{width:100%;resize:vertical}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px;margin:8px 0}.g label{display:flex;flex-direction:column;font:11px var(--mo);color:var(--mu);gap:3px;text-transform:uppercase;letter-spacing:.04em}.g label.c{flex-direction:row;align-items:center;text-transform:none;font:13px var(--sa)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.tl{position:relative;display:flex;gap:2px;height:34px;margin:10px 0 2px}.tb{background:#1a1d22;border:1px solid var(--bd);border-radius:6px;min-width:18px;text-align:center;line-height:32px;cursor:pointer;font:11px var(--mo);overflow:hidden}.tb.on{border-color:var(--ac);color:var(--ac)}.ph{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ac);pointer-events:none}
+.tt{position:relative;height:14px}.tt b{position:absolute;top:2px;height:9px;background:var(--ac);opacity:.55;border-radius:3px}.tx{border-top:1px solid var(--bd);padding-top:10px;margin-top:10px}video{width:100%;max-width:240px;border-radius:12px}progress{width:100%;accent-color:var(--ac)}
+.feat{max-width:1180px;margin:34px auto 0;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.feat div{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:20px}.feat h2{font:500 21px var(--se);margin:0 0 6px}.feat p{margin:0;color:var(--mu);font-size:14px}
+.note{text-align:center;font-size:13px;color:var(--mu);max-width:640px;margin:22px auto 0;padding:0 20px}
+dialog{background:var(--cd);color:var(--fg);border:1px solid var(--bd);border-radius:18px;max-width:420px;width:92%}dialog h3{font:500 24px var(--se);margin:0 0 8px}::backdrop{background:rgba(0,0,0,.72)}.ck{font:12px var(--mo);display:grid;gap:4px;margin:10px 0}.ck .y{color:#5ad07a}.ck .n{color:#e5484d}
+
+body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:70vh;background:radial-gradient(60% 60% at 25% 30%,rgba(139,124,255,.20),transparent 70%),radial-gradient(50% 55% at 78% 20%,rgba(110,170,255,.12),transparent 70%);pointer-events:none;z-index:-1}
+@media(max-width:820px){.stage{top:0;z-index:6;background:var(--bg);margin:0 -20px;padding:8px 20px 10px;border-bottom:1px solid var(--bd)}.cw{height:min(32vh,290px)}.stage>.m{display:none}}
+.mtabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.mtabs button{border-radius:99px;padding:5px 12px;font-size:13px;color:var(--mu)}.mtabs button[aria-selected=true]{background:var(--ac);border-color:var(--ac);color:#0b0c0e;font-weight:600}
+.mlist{display:grid;gap:6px;max-height:300px;overflow:auto;padding-right:2px}.mrow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--bd);border-radius:12px;background:#0b0c0e}.mrow.on{border-color:var(--ac);background:rgba(139,124,255,.08)}
+.mrow .pv{width:36px;height:36px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:12px}.mrow b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mrow span.d{display:block;font:11px var(--mo);color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[hidden]{display:none!important}.bar,.intro,#app,.feat,.note{width:100%}main{width:100%}.brand{display:flex;align-items:center;gap:10px}.brand svg{width:26px;height:26px;flex:none}
+.back:focus-visible,.chip:focus-visible,.lnk:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
+.bar .lhs{display:flex;align-items:center;gap:8px 20px;flex:1;flex-wrap:wrap}
+.chip{margin-left:auto}.chip[data-state=ready] i{background:#5fd39a}.chip.bad i{background:#e5484d}
+footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;margin:20px auto 0;border-top:1px solid var(--line);padding-top:26px;font-size:inherit;color:inherit}
+.legal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 30px;margin-bottom:22px}
+.legal h2{font:400 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
+.legal p{color:var(--dim);font-size:13px;line-height:1.6;margin:0}
+.legal-base{display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:space-between;align-items:flex-start;padding-top:18px;border-top:1px solid var(--line)}
+.legal-text{flex:1 1 520px;display:grid;gap:8px;min-width:0}
+.legal a{color:var(--mut);text-underline-offset:3px}.legal a:hover{color:var(--ink)}.legal .credit{color:var(--mut)}
+.legal-grid p,.legal-text p{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+.licenses{margin-top:18px;border:1px solid var(--line);border-radius:14px}
+.licenses summary{cursor:pointer;padding:12px 16px;font:400 14px var(--sans);color:var(--mut)}.licenses summary::after{content:none}
+.licenses-body{padding:4px 16px 16px;display:grid;gap:18px}
+.licenses h3{font:500 14px var(--sans);color:var(--ink);margin:0 0 4px}
+.licenses .src{font:400 12px var(--mono);color:var(--dim);margin:0 0 6px;text-align:left}
+.licenses pre{font:400 11.5px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;max-height:220px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;margin:0}
+.share{display:flex;align-items:center;gap:8px}.share .lbl{font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.sb{width:36px;height:36px;padding:0;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--mut);transition:color .2s,border-color .2s;text-decoration:none}
+.sb:hover{color:var(--acc);border-color:var(--acc)}.sb svg{width:17px;height:17px}
+.snote{font:400 12px var(--mono);color:var(--acc);min-width:90px}
+@media(max-width:820px){.legal-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---- Upright v2 ---- */
+.edit .feat,.edit .note{display:none}
+#app{max-width:1280px}
+.ws{display:grid;gap:14px}
+.wtop{display:grid;grid-template-columns:minmax(260px,400px) minmax(0,1fr);gap:14px 16px;align-items:start}
+.stage{position:sticky;top:8px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.side{min-width:0}.tlwrap{min-width:0}
+@media(max-width:900px){.ws{display:flex;flex-direction:column}.wtop{display:contents}.stage{order:1;top:0;z-index:20;background:var(--bg);margin:0 -20px;padding:8px 20px 8px;border-bottom:1px solid var(--bd)}.stage>.m{display:none}.tlwrap{order:2}.side{order:3}}
+.cw{--ar:9/16;--arn:.5625;position:relative;width:min(100%,calc(min(66vh,600px)*var(--arn)));aspect-ratio:var(--ar);height:auto;background:#000;border:1px solid var(--bd);border-radius:16px;overflow:hidden;touch-action:none}
+@media(max-width:900px){.cw{width:min(100%,calc(min(34vh,300px)*var(--arn)))}}
+#hud{position:absolute;inset:0;touch-action:none;cursor:grab}
+#selbox{position:absolute;border:1.5px solid var(--ac);box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none}
+.hnd{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--ac);border:2px solid #fff;pointer-events:auto;touch-action:none;display:grid;place-items:center;font:700 13px var(--sa);color:#0b0c0e;font-style:normal}
+.hnd.hScale{right:-11px;bottom:-11px;cursor:nwse-resize}.hnd.hRot{left:50%;top:-34px;margin-left:-11px;cursor:grab}.hnd.hDel{left:-11px;top:-11px;background:#fff;cursor:pointer}
+.hRot::after{content:"";position:absolute;left:50%;top:22px;width:1.5px;height:12px;background:var(--ac)}
+.gl{position:absolute;background:rgba(139,124,255,.8);pointer-events:none}.gx{left:50%;top:0;bottom:0;width:1px}.gy{top:50%;left:0;right:0;height:1px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border-radius:99px;padding:6px 14px;font-size:14px;color:var(--mu)}.tabs button[aria-selected=true]{background:var(--ac);border-color:var(--ac);color:#0b0c0e;font-weight:600}
+.panel{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:14px 16px;min-height:200px;display:grid;gap:10px;align-content:start}
+.panel .mo{margin-top:6px}.panel .m{color:var(--mu);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button,.ol{border-radius:99px;padding:5px 12px;font-size:13px}.chips button.on,.ol.on{background:rgba(139,124,255,.16);border-color:var(--ac);color:var(--ac)}
+.sl{display:grid;gap:3px;font:11px var(--mo);color:var(--mu);text-transform:uppercase;letter-spacing:.04em;position:relative}.sl .v{position:absolute;right:0;top:0;color:var(--fg)}.sl input[type=range]{width:100%}.sl select,.sl input[type=number]{width:100%;text-transform:none;font:14px var(--sa)}
+.sl input[type=color]{width:100%;height:32px;padding:2px;border-radius:8px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px}
+.ck2{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--fg)}
+.sub{border:1px solid var(--bd);border-radius:12px;padding:8px 12px}.sub>summary{font:500 15px var(--sa)}.sub[open]>summary{margin-bottom:8px}
+.looks{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity}
+.lk{flex:none;display:grid;gap:4px;justify-items:center;width:66px;padding:5px;border-radius:12px;scroll-snap-align:start;font-size:11px;background:transparent}.lk img{border-radius:8px;background:#1a1d22;object-fit:cover;width:54px;height:96px}.lk.on{border-color:var(--ac);color:var(--ac)}
+.emo{display:flex;flex-wrap:wrap;gap:4px}.emo button{font-size:24px;padding:4px 8px;border-radius:10px}
+.olist{display:flex;flex-wrap:wrap;gap:6px}
+.sw{width:30px;height:30px;border-radius:50%;padding:0;border:2px solid var(--bd)}
+.segs{display:grid;gap:6px;max-height:260px;overflow:auto}.seg{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}.seg input{width:100%}.seg button{padding:4px 8px;font:11px var(--mo)}
+.rec{background:#e5484d!important;border-color:#e5484d!important;color:#fff!important}
+.cover{width:90px;min-height:50px;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#000}.cover canvas{width:100%;display:block}
+#out video{width:100%;max-width:260px;border-radius:12px;margin:8px 0}
+/* timeline */
+.tlwrap{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:8px 10px 10px}
+.tlbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.tlbar button{padding:4px 10px;font-size:13px}.tlbar .sp{flex:1}
+#tls{overflow-x:auto;overflow-y:hidden;position:relative;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding-bottom:4px}
+#tlin{position:relative;min-width:100%}#tlc{position:relative}
+.ruler{position:relative;height:18px;border-bottom:1px solid var(--bd);margin-bottom:4px;cursor:pointer}.ruler span{position:absolute;top:2px;font:10px var(--mo);color:var(--mu);padding-left:3px;border-left:1px solid var(--bd);height:14px}
+.trk{position:relative;height:30px;margin-bottom:3px}.trk.main{height:56px}
+.blk{position:absolute;top:0;bottom:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#1a1d22;cursor:pointer;touch-action:pan-x}
+.blk.on{border:2px solid var(--ac);z-index:3}.blk .th{position:absolute;inset:0;display:flex;overflow:hidden}.blk .th i{flex:none;height:100%;background-size:cover;background-position:center}.blk .th i.im{background-size:cover}
+.blk .wv{position:absolute;left:0;bottom:0;height:22px;width:100%;pointer-events:none}
+.blk .lb{position:absolute;left:4px;top:2px;font:10px var(--mo);color:#fff;text-shadow:0 1px 2px #000;pointer-events:none}
+.blk .tr{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(139,124,255,.6),transparent);pointer-events:none}
+.tH{position:absolute;top:0;bottom:0;width:14px;background:var(--ac);opacity:.9;cursor:ew-resize;touch-action:none}.tH.l{left:0;border-radius:6px 0 0 6px}.tH.r{right:0;border-radius:0 6px 6px 0}
+.obar{position:absolute;top:3px;bottom:3px;border-radius:7px;background:rgba(139,124,255,.25);border:1px solid rgba(139,124,255,.6);font:11px var(--mo);display:flex;align-items:center;padding:0 12px;overflow:hidden;white-space:nowrap;cursor:grab;touch-action:none}.obar.on{background:rgba(139,124,255,.5);border-color:#fff}.obar.caps{background:rgba(120,200,255,.25);border-color:rgba(120,200,255,.6)}.obar.video,.obar.image{background:rgba(255,200,92,.22);border-color:rgba(255,200,92,.6)}
+.oH{position:absolute;top:0;bottom:0;width:10px;cursor:ew-resize}.oH.l{left:0}.oH.r{right:0}.obar.on .oH{background:rgba(255,255,255,.7)}
+.mbar,.vbar{position:absolute;top:3px;bottom:3px;border-radius:7px;overflow:hidden;font:11px var(--mo);display:flex;align-items:center;padding:0 8px;white-space:nowrap;touch-action:none;cursor:grab}
+.mbar{background:rgba(92,200,140,.2);border:1px solid rgba(92,200,140,.5)}.vbar{background:rgba(255,92,92,.2);border:1px solid rgba(255,92,92,.5)}.mbar canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.mbar span,.vbar span{position:relative}
+.beats i{position:absolute;top:4px;bottom:4px;width:1px;background:rgba(255,255,255,.18);pointer-events:none}
+.ph{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.4);z-index:5;cursor:ew-resize;margin-left:-1px}.ph i{position:absolute;left:-7px;top:-2px;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ac)}
+#dropInd{position:absolute;top:18px;height:56px;width:3px;background:var(--ac);z-index:6}
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,30px);background:#1a1d22;border:1px solid var(--bd);border-radius:12px;padding:10px 16px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:92vw}.toast.show{opacity:1;transform:translate(-50%,0)}.toast.bad{border-color:#e5484d}
+.restore{max-width:520px;margin:18px auto 0;border:1px solid var(--ac);background:rgba(139,124,255,.08);border-radius:14px;padding:12px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tr2{display:flex;gap:8px;align-items:center;width:100%}.tr2 input{flex:1}
+.panel .row{margin-top:0}
+
+/* header and report: same pattern as Clearcut, Verbatim, Polish and The Tailorly */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(16px,4vw,44px);max-width:1240px;width:100%;margin:0 auto;flex-wrap:wrap}
+.top .lhs{display:flex;align-items:center;gap:8px 20px;flex-wrap:wrap}
+.top .back{font:400 13px var(--mono);color:var(--mut);text-decoration:none;letter-spacing:.02em}.top .back:hover{color:var(--ink)}
+.top .brand{display:flex;align-items:center;gap:10px;font:500 15px var(--sans);flex:none}.top .brand svg{width:26px;height:26px}
+.modelbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;font:400 12px var(--mono);color:var(--mut);border:1px solid var(--line);padding:5px 11px;border-radius:99px;margin-left:0;background:transparent;cursor:default}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--dim);display:block}
+.chip[data-state=ready] i{background:#5fd39a}.chip[data-state=loading] i{background:var(--acc);animation:pulse 1s ease-in-out infinite}.chip[data-state=error] i{background:#ff5d5d}
+@keyframes pulse{50%{opacity:.35}}
+.mini{border:1px solid var(--line);color:var(--ink);font:400 12px var(--mono);padding:5px 11px;border-radius:99px}.mini:hover:not(:disabled){border-color:var(--ink)}.mini:disabled{opacity:.5;cursor:wait}
+.mini.strong{background:var(--acc);border-color:var(--acc);color:#1a0f08}
+.report{max-width:1240px;width:calc(100% - 2*clamp(16px,4vw,44px));margin:0 auto 18px;border:1px solid var(--line);border-radius:18px;padding:14px 16px;background:var(--panel);display:grid;gap:10px}
+.report .rh{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}.report .rh div{display:flex;gap:8px;flex-wrap:wrap}
+.report textarea{width:100%;min-height:220px;resize:vertical;font:400 12px/1.5 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+.report .hint{font-size:12.5px;color:var(--dim);margin:0}
+
+/* ---- Docsmith ---- */
+.intro .lead.small{font-size:14px;margin:26px auto 12px}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;max-width:900px;margin:0 auto;text-align:left}
+.tools button{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:14px;background:var(--cd);border:1px solid var(--bd);cursor:pointer}
+.tools button b{font:500 17px var(--se)}.tools button span{font-size:12.5px;color:var(--mu);line-height:1.35}
+.tools button:hover{border-color:var(--ac)}
+.cmdbar{display:flex;gap:8px;position:sticky;top:0;z-index:7;padding:8px 0;background:var(--bg)}
+.cmdbar input{flex:1;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid var(--ac);background:#0f1013;min-width:0}
+.cmdbar button{padding:10px 18px;border-radius:12px;font-size:15px}
+.fb{margin:4px 2px 6px;font-size:14px;color:var(--fg);min-height:21px}.fb.bad{color:#ff9a8f}
+.ex{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.ex .eg{border-radius:99px;padding:5px 12px;font-size:12.5px;color:var(--mu)}.ex .eg:hover{color:var(--fg)}
+.busy{margin:8px 0 12px;padding:12px 16px;border:1px solid var(--bd);border-radius:12px;background:var(--cd);font-size:14px}.pbar{height:5px;border-radius:5px;background:#1c1f24;margin-top:8px;overflow:hidden}.pbar i{display:block;height:100%;width:0;background:var(--ac);transition:width .15s}
+.tb{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}.tb .sp,.row .sp{flex:1}.tb button,.tb .btn{padding:5px 11px;font-size:13px}
+.empty{color:var(--mu);text-align:center;padding:30px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+.pg{position:relative;border:1px solid var(--bd);border-radius:14px;background:var(--cd);padding:8px 8px 34px;cursor:pointer;user-select:none}
+.pg.sel{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac) inset}
+.pg .th{height:150px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;background:#0f1013}
+.pg canvas{width:auto;height:auto;max-width:none;display:block;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4);transform-origin:center;transition:transform .2s}
+.pg .blank{width:100px;height:140px;background:#f3f1ec;color:#777;display:grid;place-items:center;font-size:12px;border-radius:3px}
+.pg .no{position:absolute;left:10px;top:10px;font:11px var(--mo);background:rgba(11,12,14,.78);padding:2px 7px;border-radius:99px}
+.pg .pb{position:absolute;left:6px;right:6px;bottom:5px;display:flex;justify-content:space-between}
+.pg .pb button{padding:2px 8px;font-size:13px;border-radius:8px;border-color:transparent;color:var(--mu)}.pg .pb button:hover{color:var(--ac)}
+.out .g label span.inl{display:flex;align-items:center;gap:6px;font:14px var(--sa);text-transform:none;letter-spacing:0;color:var(--fg);padding-top:5px}
+.out .g select,.out .g input[type=text],.out .g input[type=number]{width:100%}
+.out .row .p{padding:9px 18px;font-size:15px}
+.ilist{display:grid;gap:8px;margin-top:12px}
+.ir{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--cd)}
+.ir .it{width:64px;height:64px;border-radius:8px;background:#0f1013;display:grid;place-items:center;overflow:hidden}.ir .it img{max-width:100%;max-height:100%;display:block}
+.ir .im b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ir .im span{display:block;font:12px var(--mo);color:var(--mu);margin-top:2px}.ir .im span b{display:inline;color:var(--ac)}
+.ir .ia{display:flex;gap:6px}.ir .ia button{padding:5px 10px;font-size:13px}
+.edit .tools{display:none}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}.ir{grid-template-columns:48px minmax(0,1fr) auto}.ir .it{width:48px;height:48px}.cmdbar button{padding:10px 12px}}
+</style>
+</head><body>
+<header class="top"><div class="lhs"><a class="back" href="../">&larr; tinywebapps.in</a><div class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="9" fill="url(#dg)"/><path d="M10 6.5h8l5 5V25a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 019 25V8A1.5 1.5 0 0110 6.5z" stroke="#12102a" stroke-width="1.7" stroke-linejoin="round"/><path d="M12.5 17h7M12.5 21h4.5" stroke="#12102a" stroke-width="1.7" stroke-linecap="round"/><defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8b7cff"/><stop offset="1" stop-color="#6eaaff"/></linearGradient></defs></svg>Docsmith</div></div><div class="modelbar"><span class="chip" data-state="ready" role="status"><i></i><span>Ready on your device</span></span></div></header>
+<section class="intro" id="intro"><div class="eyebrow">PDF &amp; image toolkit</div><h1>Type what you want. <i>Docsmith does it.</i></h1>
+<p class="lead">Merge, split, rotate, delete, compress and convert PDFs and images by typing plain instructions, like &ldquo;delete pages 2-4&rdquo; or &ldquo;compress to 500 KB&rdquo;. It all runs on your device, and nothing is uploaded.</p>
+<label class="drop" id="drop" tabindex="0"><input id="f1" type="file" accept="application/pdf,.pdf,image/*" multiple><b>Drop PDFs or images here</b>or click to choose. You can also paste images from the clipboard.<span>PDF · JPG · PNG · WEBP · GIF · AVIF</span></label>
+<p class="lead small">Or start from a task:</p>
+<div class="tools" id="tools"></div></section>
+<input id="f4" type="file" multiple hidden>
+<div id="app">
+ <nav class="tabs" id="tabs" role="tablist" aria-label="Mode"><button type="button" data-t="pdf" role="tab" aria-selected="true">PDF &amp; pages</button><button type="button" data-t="img" role="tab" aria-selected="false">Images</button></nav>
+ <form class="cmdbar" id="cmdForm" autocomplete="off"><input id="cmd" type="text" aria-label="Tell Docsmith what to do" spellcheck="false" autocomplete="off"><button class="p" type="submit">Do it</button></form>
+ <p class="fb" id="fb" role="status" aria-live="polite">Type an instruction, or tap an example.</p>
+ <div class="ex" id="ex"></div>
+ <div class="busy" id="busy" hidden><span id="busyT">Working…</span><div class="pbar"><i id="busyBar"></i></div></div>
+ <section id="pdfPane">
+  <div class="tb"><b class="mo" id="pcount"></b><span class="sp"></span>
+   <label class="btn">+ Add files<input id="f2" type="file" accept="application/pdf,.pdf,image/*" multiple hidden></label>
+   <button type="button" id="bAll">Select all</button><button type="button" id="bRotSel">Rotate selected</button><button type="button" id="bDelSel">Delete selected</button>
+   <button type="button" id="bUndo">↶ Undo</button><button type="button" id="bRedo">↷ Redo</button><button type="button" id="bClear">Clear</button></div>
+  <p class="empty" id="pdfEmpty" hidden>No pages yet. Add a PDF or some images.</p>
+  <div class="grid" id="grid"></div>
+  <div class="card out" id="pdfOut" hidden>
+   <div class="g">
+    <label>Page numbers<span class="inl"><input type="checkbox" id="oNum"> on</span></label>
+    <label>Position<select id="oNumPos"><option value="bc">Bottom centre</option><option value="br">Bottom right</option><option value="bl">Bottom left</option><option value="tc">Top centre</option><option value="tr">Top right</option><option value="tl">Top left</option></select></label>
+    <label>Number style<select id="oNumFmt"><option value="n">1</option><option value="nofm">1 / 5</option><option value="pageof">Page 1 of 5</option></select></label>
+    <label>Watermark text<input type="text" id="oWm" maxlength="40" placeholder="none"></label>
+    <label>Compression<select id="oComp"><option value="none">None (keeps text)</option><option value="low">Light</option><option value="medium">Medium</option><option value="high">Strong</option><option value="extreme">Smallest</option><option value="kb">Target size…</option></select></label>
+    <label hidden>Target KB<input type="number" id="oKb" min="20" step="10"></label>
+    <label>Images on pages<select id="oImg"><option value="a4">Fit on A4</option><option value="letter">Fit on Letter</option><option value="original">Original size</option></select></label>
+    <label>File name<input type="text" id="oName" maxlength="60"></label>
+   </div>
+   <div class="row"><button type="button" class="p" id="bDl">Download PDF</button><button type="button" id="bToImg">Pages to images (zip)</button></div>
+   <p class="m">Select pages by tapping them, then say &ldquo;delete selected&rdquo; or &ldquo;rotate selected left&rdquo;. Drag pages to reorder them, or use the arrows.</p>
+  </div>
+ </section>
+ <section id="imgPane" hidden>
+  <div class="tb"><b class="mo" id="icount"></b><span class="sp"></span><label class="btn">+ Add images<input id="f3" type="file" accept="image/*" multiple hidden></label></div>
+  <p class="empty" id="imgEmpty">No images yet. Add some, then say &ldquo;convert to png&rdquo; or &ldquo;compress to 100 KB&rdquo;.</p>
+  <div class="card out" id="imgOut" hidden>
+   <div class="g">
+    <label>Format<select id="iFmt"><option value="jpg">JPG</option><option value="png">PNG</option><option value="webp">WebP</option></select></label>
+    <label>Width (px)<input type="number" id="iW" min="1" max="12000" placeholder="auto"></label>
+    <label>Height (px)<input type="number" id="iH" min="1" max="12000" placeholder="auto"></label>
+    <label>Scale (%)<input type="number" id="iPct" min="1" max="400" placeholder="100"></label>
+    <label>Max size (KB)<input type="number" id="iKb" min="5" placeholder="none"></label>
+    <label>Quality <span id="iQo">90%</span><input type="range" id="iQ" min="5" max="100" value="90"></label>
+    <label>Colour<span class="inl"><input type="checkbox" id="iGray"> grayscale</span></label>
+   </div>
+   <div class="row"><button type="button" id="iRot">↻ Rotate</button><button type="button" id="iFlip">⇋ Flip</button><span class="sp"></span><button type="button" class="p" id="iAll">Download all</button><button type="button" id="iPdf">Make a PDF</button><button type="button" id="iClear">Clear</button></div>
+  </div>
+  <div class="ilist" id="imgList"></div>
+ </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<section class="feat"><div><h2>Just type it</h2><p>Say &ldquo;delete pages 2-4&rdquo;, &ldquo;rotate all right&rdquo; or &ldquo;move page 3 to the start&rdquo;. No menus to hunt through. Tap or drag pages if you prefer.</p></div><div><h2>Hit a file size</h2><p>Compress a PDF or an image to about 500 KB or 100 KB, handy for forms with upload limits.</p></div><div><h2>Many formats</h2><p>Merge and split PDFs, make a PDF from photos, turn pages into JPG, PNG or WebP, and batch convert images.</p></div><div><h2>Private by design</h2><p>Your files are processed in your browser and never uploaded. No sign-up, no watermark.</p></div></section>
+<p class="note">Docsmith reads a fixed set of plain phrases. It is not an AI chatbot, which is why nothing has to leave your device. Password-protected PDFs can not be opened.</p>
+<footer class="legal">
+  <div class="legal-grid">
+    <section><h2>Privacy</h2><p>PDFs and images are processed in your browser. They are not uploaded to or stored by this site. The page sets no cookies, runs no ads and has no visitor tracking, and it keeps nothing about your files after you close the tab. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
+    <section><h2>Terms of use</h2><p>You are responsible for having the right to use every document and image you process. Results are made automatically in your browser, can be imperfect, and are provided as is, without warranty of any kind. The command bar understands a fixed set of plain phrases and is not an AI assistant. Compressed PDFs turn pages into images, so their text can no longer be selected or searched. Check each result before you send it. Password-protected PDFs can not be opened.</p></section>
+    <section><h2>Credits</h2><p>PDFs are edited with pdf-lib (MIT), shown and rendered with PDF.js by Mozilla (Apache-2.0), and zipped with fflate (MIT). Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). Docsmith is an independent project and is not affiliated with or endorsed by Adobe, Microsoft, Google or any other document software maker.</p></section>
+  </div>
+  <div class="legal-base">
+    <div class="legal-text">
+      <p class="credit">AI did the heavy lifting. <a href="https://www.instagram.com/ashish.narayann/" target="_blank" rel="noopener noreferrer">Ashish Narayan</a> turned the lights on.</p>
+      <p>&copy; 2026 <a href="../">tinywebapps.in</a>. All rights reserved in the original design, text and code of this site. Third-party software and the typefaces remain the property of their respective authors and are used under their own licences, reproduced below under &ldquo;Open-source licences&rdquo;. The documents and images you process remain yours, and no claim is made over them. No part of this site may be copied or redistributed without permission, except as those licences allow.</p>
+      <div class="tiger" style="margin-top:4px"><a href="https://savethetiger.site/" target="_blank" rel="noopener" aria-label="I protect tigers — Save the Tigers" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:999px;background:#0B130E;border:1px solid #1F3A2A;color:#EAF2EC;font-size:12px;font-weight:700;letter-spacing:.08em;line-height:1;text-decoration:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"><svg width="18" height="18" viewBox="0 0 64 64" aria-hidden="true" style="display:block;flex:none"><g fill="#FF9A1F"><ellipse cx="13" cy="27" rx="5.2" ry="7.2" transform="rotate(-24 13 27)"/><ellipse cx="25" cy="16" rx="5.4" ry="7.8" transform="rotate(-9 25 16)"/><ellipse cx="39" cy="16" rx="5.4" ry="7.8" transform="rotate(9 39 16)"/><ellipse cx="51" cy="27" rx="5.2" ry="7.2" transform="rotate(24 51 27)"/><path d="M32 29 C41 29 49 37 49 46 C49 53 43.5 56.5 38 54.5 C34.5 53.3 29.5 53.3 26 54.5 C20.5 56.5 15 53 15 46 C15 37 23 29 32 29 Z"/></g><path d="M17 41 Q24 43 28 50 M47 41 Q40 43 36 50" stroke="#0B130E" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span>I PROTECT TIGERS</span></a></div>
+    </div>
+    <span class="share" role="group" aria-label="Share Docsmith"><span class="lbl">Share</span>
+    <a class="sb" id="shWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" title="Share on WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.78h-.01a9.9 9.9 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.88-9.88 9.88M20.52 3.45A11.8 11.8 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.4z"/></svg></a>
+    <a class="sb" id="shX" href="https://x.com/intent/post" target="_blank" rel="noopener noreferrer" aria-label="Share on X (Twitter)" title="Share on X (Twitter)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zM17.61 20.65h2.04L6.49 3.24H4.3z"/></svg></a>
+    <button class="sb" id="shIg" type="button" aria-label="Share on Instagram" title="Share on Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></button>
+    <span class="snote" id="shNote" role="status" aria-live="polite"></span>
+  </span>
+  </div>
+  <details class="licenses"><summary>Open-source licences</summary><div class="licenses-body">
+<div><h3>pdf-lib: MIT License</h3><p class="src">https://github.com/Hopding/pdf-lib</p><pre>MIT License
+
+Copyright (c) 2019 Andrew Dillon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>PDF.js by Mozilla: Apache License 2.0</h3><p class="src">https://github.com/mozilla/pdf.js</p><pre>Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS</pre></div>
+<div><h3>fflate: MIT License</h3><p class="src">https://github.com/101arrowz/fflate</p><pre>MIT License
+
+Copyright (c) 2023 Arjun Barrett
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>Fraunces: SIL Open Font License 1.1</h3><p class="src">https://github.com/undercasetype/Fraunces</p><pre>Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces) Fraunces-Italic[SOFT,WONK,opsz,wght].ttf: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>Instrument Sans: SIL Open Font License 1.1</h3><p class="src">https://github.com/Instrument/instrument-sans</p><pre>Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans) InstrumentSans-Italic[wdth,wght].ttf: Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>JetBrains Mono: SIL Open Font License 1.1</h3><p class="src">https://github.com/JetBrains/JetBrainsMono</p><pre>Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono) JetBrainsMono-Italic[wght].ttf: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+  </div></details>
+</footer>
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="vendor/fflate.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){const $=id=>document.getElementById(id),SITE='https://tinywebapps.in/docsmith/',web=/^https?:$/.test(location.protocol),url=web?location.origin+location.pathname:SITE,text='Docsmith: merge, split, rotate, compress and convert PDFs and images by typing what you want. Free and private.';
+$('shWa').href='https://wa.me/?text='+encodeURIComponent(text+' '+url);$('shX').href='https://x.com/intent/post?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url);
+const note=$('shNote');let t;const flash=m=>{note.textContent=m;clearTimeout(t);t=setTimeout(()=>{note.textContent=''},4500)};
+$('shIg').addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:'Docsmith',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}try{await navigator.clipboard.writeText(url);flash('Link copied. Paste it on Instagram.')}catch(e){flash('Copy this link: '+url)}});})();
+</script>
+</body></html>

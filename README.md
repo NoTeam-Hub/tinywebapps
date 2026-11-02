@@ -29,6 +29,8 @@ Tiny Web Apps is one small website that hosts six tools, plus a hub page that li
 
 **Polish.** Real-ESRGAN's small general model (`realesr-general-x4v3`, about 4.7 MB, converted to ONNX) rebuilds detail in small photos and removes noise, running in the browser through ONNX Runtime Web. Polish first measures each photo (brightness, colour cast, contrast, noise, sharpness) and then applies only the fixes it needs: automatic levels and exposure, colour-cast correction, smart saturation, noise reduction and sharpening. Small photos get the AI upscale (2 to 4 times larger); larger photos get the light, colour and sharpness fixes without upscaling. On a processor the AI step handles photos up to about 320,000 pixels; browsers with WebGPU (recent Chrome or Edge) use the graphics card, check it against a known answer first, and handle photos up to about 2.2 million pixels. The model chip at the top right shows the engine state, and "Details" opens a report with a file check. AI upscaling can invent plausible detail that was not in the original, so it should not be used for evidence or identification. An optional Better quality mode uses Real-ESRGAN x4plus (about 33 MB, fp16 weights) on browsers with WebGPU.
 
+**Docsmith.** A PDF and image toolkit driven by a plain-language command bar (a fixed set of phrases, not an AI model). PDFs are edited with pdf-lib, rendered with PDF.js and zipped with fflate; all three are vendored in `docsmith/vendor/`.
+
 ## Privacy
 
 - Files are processed on the visitor's device. The site has no server code and no database.
@@ -49,6 +51,7 @@ verbatim/       Verbatim
 stillreel/      Stillreel
 tailorly/       The Tailorly
 enhance/        Polish
+docsmith/       Docsmith
 upright/        Upright
 CNAME           the custom domain (tinywebapps.in)
 .nojekyll       tells GitHub Pages to publish the files as they are
@@ -74,6 +77,7 @@ The tools use these open-source parts. The full licence texts are in each tool's
 
 - IS-Net (DIS), Apache License 2.0
 - Real-ESRGAN (realesr-general-x4v3 and x4plus), BSD 3-Clause
+- pdf-lib (MIT), PDF.js (Apache 2.0) and fflate (MIT) in Docsmith
 - Whisper by OpenAI, MIT; ONNX versions from sherpa-onnx, Apache-2.0
 - MiDaS depth model, MIT
 - ONNX Runtime Web, MIT
