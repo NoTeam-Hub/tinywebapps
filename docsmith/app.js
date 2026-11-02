@@ -76,7 +76,7 @@
     if (imgs.length) { if (S.tab === 'img') added += await addImgItems(imgs); else for (const f of imgs) added += await addImgPage(f); }
     setBusy(false); renderAll();
     if (added && S.tab === 'img') processImages();
-    if (after && after.cmd) run(after.cmd); else if (after && after.fill) { $('#cmd').value = after.fill; $('#cmd').focus(); }
+    if (after && after.cmd) run(after.cmd); else if (after && after.fill) { $('#cmd').value = after.fill; $('#cmd').focus(); $('#cmd').select(); say('Files added. Press Do it to run "' + after.fill + '", or type something else.'); }
   }
 
   /* ---------- thumbnails ---------- */
@@ -454,7 +454,7 @@
     document.addEventListener('dragover', (e) => { if (S.started) e.preventDefault(); });
     $('#app').addEventListener('drop', (e) => { if (e.dataTransfer.files.length) { e.preventDefault(); addFiles(e.dataTransfer.files); } });
     document.addEventListener('paste', (e) => { const fs = [...(e.clipboardData ? e.clipboardData.files : [])]; if (fs.length) addFiles(fs); });
-    $('#tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const T = TOOLS[+b.dataset.i], inp = $('#f4'); inp.accept = T.accept; inp.onchange = (ev) => { const fs = ev.target.files; ev.target.value = ''; inp.onchange = null; if (fs.length) addFiles(fs, T.after); }; inp.click(); });
+    $('#tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const T = TOOLS[+b.dataset.i], inp = $('#f4'); inp.accept = T.accept; inp.onchange = (ev) => { const fs = [...ev.target.files]; ev.target.value = ''; inp.onchange = null; if (fs.length) addFiles(fs, T.after); }; inp.click(); });
     // pdf grid
     const g = $('#grid');
     g.addEventListener('click', (e) => {
