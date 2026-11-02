@@ -261,7 +261,7 @@
       } else { const c = ovTexture(o, t); if (!c) continue; tex = c.tex; box = U.ovBox(o, t); }
       if (!box) continue;
       const lt = t - s0; let a = o.alpha == null ? 1 : o.alpha, sc = 1, dx = 0, dy = 0, rot = box.rot;
-      const A = o.anim || 'none', ip = clamp(lt / .35, 0, 1);
+      const A = o.anim || 'none', ip = (forExport || U.playing) ? clamp(lt / .35, 0, 1) : 1; /* paused preview shows the finished look; the entrance only plays on play and export */
       if (o.type !== 'caps') {
         if (A === 'fade') a *= ip; else if (A === 'pop') { sc = .5 + .5 * ease.back(ip); a *= clamp(ip * 3, 0, 1); } else if (A === 'slide') { dy = (1 - ease.out(ip)) * H * .08; a *= ip; } else if (A === 'bounce') { sc = ip < 1 ? .3 + .7 * ease.back(ip) : 1 + .04 * Math.sin(lt * 7); } else if (A === 'spin') { rot += (1 - ease.out(ip)) * 180; sc = .3 + .7 * ease.out(ip); a *= ip; }
         if (o.end != null) a *= clamp((e0 - t) / .2, 0, 1);

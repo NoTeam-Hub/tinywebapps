@@ -1,6 +1,6 @@
 /* Upright service worker: lets the installed app open and work offline.
    Pages and scripts: network first, cached copy when offline. Music, fonts and icons: cache first. */
-const V = 'upright-v2-1', SHELL = ['./', 'index.html', 'fx.js', 'engine.js', 'export.js', 'store.js', 'auto.js', 'ui.js', 'app.js', 'lib.js', 'whisper.js', 'mp4-muxer.js', 'favicon.svg', 'site.webmanifest', 'fonts/fraunces.woff2', 'fonts/fraunces-i.woff2', 'fonts/instrument.woff2', 'fonts/jbmono.woff2'];
+const V = 'upright-v2-2', SHELL = ['./', 'index.html', 'fx.js', 'engine.js', 'export.js', 'store.js', 'auto.js', 'ui.js', 'app.js', 'lib.js', 'whisper.js', 'mp4-muxer.js', 'favicon.svg', 'site.webmanifest', 'fonts/fraunces.woff2', 'fonts/fraunces-i.woff2', 'fonts/instrument.woff2', 'fonts/jbmono.woff2'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => {})))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('upright-') && k !== V).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
