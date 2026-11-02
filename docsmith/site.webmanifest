@@ -1,0 +1,16 @@
+{
+  "name": "Docsmith: PDF and image toolkit",
+  "short_name": "Docsmith",
+  "description": "Merge, split, rotate, compress and convert PDFs and images by typing what you want.",
+  "id": "/docsmith/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0c0e",
+  "theme_color": "#0b0c0e",
+  "icons": [
+    {"src": "brand/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "brand/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "brand/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

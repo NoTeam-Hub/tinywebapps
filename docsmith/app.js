@@ -120,6 +120,8 @@
     const g = $('#grid'), n = S.pages.length, nFiles = new Set(S.pages.filter((p) => !p.blank).map((p) => p.fid)).size;
     $('#pcount').textContent = n ? n + (n === 1 ? ' page' : ' pages') + ' from ' + nFiles + (nFiles === 1 ? ' file' : ' files') : '';
     $('#pdfEmpty').hidden = n > 0; $('#pdfOut').hidden = n === 0;
+    const cnt = {}; S.pages.forEach((p) => { if (!p.blank) cnt[p.fid] = (cnt[p.fid] || 0) + 1; });
+    $('#fileChips').innerHTML = Object.keys(cnt).map((id) => '<span class="chip"><span>' + esc((S.files[id] || {}).name || 'file') + '</span><em>' + cnt[id] + ' p</em><button type="button" data-fid="' + id + '" aria-label="Remove this file">×</button></span>').join('');
     g.innerHTML = S.pages.map((p, i) => '<div class="pg' + (p.sel ? ' sel' : '') + '" draggable="true" data-i="' + i + '"><div class="th">' + (p.blank ? '<div class="blank">Blank</div>' : '<canvas></canvas>') + '</div><span class="no">' + (i + 1) + '</span><div class="pb"><button type="button" data-a="l" aria-label="Move earlier">◀</button><button type="button" data-a="rot" aria-label="Rotate">↻</button><button type="button" data-a="del" aria-label="Delete page">×</button><button type="button" data-a="r" aria-label="Move later">▶</button></div></div>').join('');
     [...g.children].forEach((el, i) => { const p = S.pages[i], c = el.querySelector('canvas'); if (c) thumbFor(p, c); });
     const o = S.o; $('#oNum').checked = !!o.num; $('#oNumPos').value = o.num ? o.num.pos : 'bc'; $('#oNumFmt').value = o.num ? o.num.fmt : 'n';
@@ -462,7 +464,7 @@
       if (!b) { S.pages[i].sel = !S.pages[i].sel; el.classList.toggle('sel', S.pages[i].sel); return; }
       const a = b.dataset.a; snap();
       if (a === 'rot') S.pages[i].rot = (S.pages[i].rot + 90) % 360;
-      else if (a === 'del') { if (S.pages.length === 1) { S.hist.pop(); return say('That is the last page. Use Clear to start over.', true); } S.pages.splice(i, 1); }
+      else if (a === 'del') { S.pages.splice(i, 1); }
       else if (a === 'l' && i > 0) { [S.pages[i - 1], S.pages[i]] = [S.pages[i], S.pages[i - 1]]; }
       else if (a === 'r' && i < S.pages.length - 1) { [S.pages[i + 1], S.pages[i]] = [S.pages[i], S.pages[i + 1]]; }
       renderPdf();
@@ -474,6 +476,7 @@
     g.addEventListener('dragend', () => { drag = -1; });
     $('#bUndo').onclick = undo; $('#bRedo').onclick = redo; $('#bAll').onclick = () => { const all = S.pages.some((p) => !p.sel); S.pages.forEach((p) => { p.sel = all; }); renderPdf(); };
     $('#bDelSel').onclick = () => run('delete selected'); $('#bRotSel').onclick = () => run('rotate selected right');
+    $('#fileChips').addEventListener('click', (e) => { const b = e.target.closest('button[data-fid]'); if (!b) return; snap(); S.pages = S.pages.filter((p) => String(p.fid) !== b.dataset.fid); renderAll(); say('File removed. Undo brings it back.'); });
     $('#bClear').onclick = () => { snap(); S.pages = []; renderAll(); say('Cleared.'); };
     $('#bDl').onclick = doDownload; $('#bToImg').onclick = () => run('convert pages to jpg');
     // options
