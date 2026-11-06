@@ -179,6 +179,11 @@ button { font: inherit; color: inherit; }
 .sw.custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .sw.custom:focus-within { outline: 2px solid var(--rub); outline-offset: 2px; }
 
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.seg button { background: transparent; border: 0; padding: 9px 8px; font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg button:focus-visible { outline: 2px solid var(--rub); outline-offset: -2px; }
 .slider { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
 .slider label { font-size: 13px; }
 .slider output { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -350,6 +355,15 @@ button { font: inherit; color: inherit; }
           <button type="button" class="sw blur" id="blurSw" data-bg="blur" aria-label="Blurred original" title="Blurred original" aria-pressed="false">Blur</button>
           <label class="sw custom" title="Pick any colour"><input type="color" id="custom" value="#2750D8" aria-label="Custom colour"></label>
         </div>
+      </div>
+
+      <div class="sec" id="methodSec">
+        <h2>Method</h2>
+        <div class="seg" role="group" aria-label="Cut-out method">
+          <button type="button" id="mAi" aria-pressed="true">AI model</button>
+          <button type="button" id="mKey" aria-pressed="false">Colour key</button>
+        </div>
+        <p class="hint" id="methodHint">The AI model suits photos of people, animals and objects. Colour key suits logos, icons and scans on a plain single-colour background.</p>
       </div>
 
       <div class="sec">
@@ -997,7 +1011,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   const $ = (s, r = document) => r.querySelector(s);
   const MAXPX = 2400, SZ = 1024;
   const st = { w: 0, h: 0, orig: null, origData: null, mask: null, rgb: null, name: 'example', example: true, busy: false };
-  const p = { cut: 0.5, soft: 0.12, bg: 'transparent', view: 'compare', pos: 50 };
+  const p = { cut: 0.5, soft: 0.12, bg: 'transparent', view: 'compare', pos: 50, method: 'ai' };
 
   const outC = $('#out'), beforeC = $('#before');
   const outX = outC.getContext('2d'), beforeX = beforeC.getContext('2d');
@@ -1414,6 +1428,56 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     return F;
   }
 
+  /* ---------- colour key: logos, icons and scans on a plain background ---------- */
+  // Returns { bg:[r,g,b], flat:boolean } by looking at a ring of border pixels.
+  function detectFlat(img, w, h) {
+    const d = img.data, ring = [];
+    const t = Math.max(1, Math.min(3, Math.floor(Math.min(w, h) / 40)));
+    const add = (x, y) => { const q = (y * w + x) * 4; ring.push([d[q], d[q + 1], d[q + 2], d[q + 3]]); };
+    const step = Math.max(1, Math.floor(Math.max(w, h) / 600));
+    for (let k = 0; k < t; k++) {
+      for (let x = 0; x < w; x += step) { add(x, k); add(x, h - 1 - k); }
+      for (let y = 0; y < h; y += step) { add(k, y); add(w - 1 - k, y); }
+    }
+    const med = (i) => { const a = ring.map((r) => r[i]).sort((m, n) => m - n); return a[a.length >> 1]; };
+    const bg = [med(0), med(1), med(2)];
+    let near = 0;
+    for (const r of ring) if (Math.hypot(r[0] - bg[0], r[1] - bg[1], r[2] - bg[2]) < 30) near++;
+    return { bg, flat: near / ring.length >= 0.92 };
+  }
+
+  // Alpha by distance from the background colour, then colour unmixing so that
+  // anti-aliased edges keep the true colour of the artwork instead of a halo.
+  function colourKey(img, w, h, bg) {
+    const d = img.data, N = w * h;
+    const dist = new Float32Array(N);
+    for (let i = 0, q = 0; i < N; i++, q += 4) dist[i] = d[q + 3] < 8 ? 0 : Math.hypot(d[q] - bg[0], d[q + 1] - bg[1], d[q + 2] - bg[2]);
+    const SOLID = 80, NOISE = 14;
+    const sol = new Float32Array(N), sr = new Float32Array(N), sg = new Float32Array(N), sb = new Float32Array(N);
+    for (let i = 0, q = 0; i < N; i++, q += 4) if (dist[i] >= SOLID) { sol[i] = 1; sr[i] = d[q]; sg[i] = d[q + 1]; sb[i] = d[q + 2]; }
+    const R = 4, cS = boxBlur(sol, w, h, R), cR = boxBlur(sr, w, h, R), cG = boxBlur(sg, w, h, R), cB = boxBlur(sb, w, h, R);
+    const alpha = new Uint8ClampedArray(N), rgb = new Uint8ClampedArray(N * 4);
+    for (let i = 0, q = 0; i < N; i++, q += 4) {
+      const di = dist[i];
+      let a, r = d[q], g = d[q + 1], b = d[q + 2];
+      if (di < NOISE) a = 0;
+      else if (di >= SOLID) a = 1;
+      else {
+        const c = cS[i];
+        if (c > 0.02) {
+          const fr = cR[i] / c, fg = cG[i] / c, fb = cB[i] / c;
+          const vx = fr - bg[0], vy = fg - bg[1], vz = fb - bg[2], vv = vx * vx + vy * vy + vz * vz;
+          a = vv > 1 ? ((r - bg[0]) * vx + (g - bg[1]) * vy + (b - bg[2]) * vz) / vv : 1;
+          a = a < 0 ? 0 : a > 1 ? 1 : a;
+          if (a > 0.02) { r = fr; g = fg; b = fb; }
+        } else a = Math.min(1, di / SOLID);
+      }
+      alpha[i] = Math.round(a * 255);
+      rgb[q] = r; rgb[q + 1] = g; rgb[q + 2] = b; rgb[q + 3] = 255;
+    }
+    return { alpha, rgb };
+  }
+
   async function runModel(src) {
     const s = await getSession();
     const c = document.createElement('canvas');
@@ -1445,6 +1509,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     st.origData = srcCanvas.getContext('2d').getImageData(0, 0, st.w, st.h);
     outBuf = cutX.createImageData(st.w, st.h);
     $('#viewport').style.setProperty('--ar', String(st.w / st.h));
+    if (example) { st.key = null; st.ai = null; p.method = 'ai'; }
+    if (typeof syncMethod === 'function') syncMethod();
     $('#badge').hidden = !example;
     $('#fileMeta').innerHTML = '<b></b> · ' + fmt(st.w) + ' × ' + fmt(st.h) + ' px';
     $('#fileMeta b').textContent = example ? 'Example image' : name;
@@ -1558,13 +1624,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
     try {
       const canvas = await fileToCanvas(file);
-      setBusy(true, 'Removing background (about 10 to 30 seconds)');
-      await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
-      const res = await runModel(canvas);
+      const cimg = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height);
+      const fl = detectFlat(cimg, canvas.width, canvas.height);
+      st.key = { bg: fl.bg, img: cimg, res: null }; st.ai = null; st.flat = fl.flat;
+      let res;
+      if (fl.flat) {
+        setBusy(true, 'Plain background found, cutting by colour');
+        await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+        res = colourKey(cimg, canvas.width, canvas.height, fl.bg); st.key.res = res; p.method = 'key';
+      } else {
+        setBusy(true, 'Removing background (about 10 to 30 seconds)');
+        await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+        res = await runModel(canvas); st.ai = res; p.method = 'ai';
+      }
       const base = (file.name || 'photo').replace(/\.[^.]+$/, '').replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'photo';
       p.view = 'compare'; p.pos = 50;
       setImage(canvas, res, base, false);
-      say('Done in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s. ' + fmt(st.w) + ' × ' + fmt(st.h) + ' px.');
+      syncMethod();
+      say('Done in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s. ' + fmt(st.w) + ' × ' + fmt(st.h) + ' px.' + (p.method === 'key' ? ' Plain background found, so Clearcut cut it out by colour. Press AI model to use the neural model instead.' : ''));
     } catch (e) {
       say(modelEl.dataset.state === 'error' ? modelEl.title : 'Could not process this photo. Try a different image.');
     } finally {
@@ -1631,6 +1708,34 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   });
 
   if (!('filter' in CanvasRenderingContext2D.prototype)) $('#blurSw').hidden = true;
+
+  function syncMethod() {
+    $('#mAi').setAttribute('aria-pressed', String(p.method === 'ai'));
+    $('#mKey').setAttribute('aria-pressed', String(p.method === 'key'));
+  }
+  async function useMethod(m) {
+    if (st.busy || !st.orig || st.example || p.method === m) return;
+    try {
+      if (m === 'key') {
+        if (!st.key) return;
+        if (!st.key.res) st.key.res = colourKey(st.key.img, st.w, st.h, st.key.bg);
+        st.mask = st.key.res.alpha; st.rgb = st.key.res.rgb;
+        say('Colour key: pixels close to the background colour become transparent.');
+      } else {
+        if (!st.ai) {
+          setBusy(true, 'Removing background (about 10 to 30 seconds)');
+          await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+          st.ai = await runModel(st.orig);
+        }
+        st.mask = st.ai.alpha; st.rgb = st.ai.rgb;
+        say('AI model cut-out.');
+      }
+      p.method = m; buildCutout(); compose();
+    } catch (e) { say('Could not switch method. Try again.'); }
+    finally { setBusy(false); syncMethod(); }
+  }
+  $('#mAi').addEventListener('click', () => useMethod('ai'));
+  $('#mKey').addEventListener('click', () => useMethod('key'));
 
   const swatches = $('#swatches');
   function setBg(v) {
