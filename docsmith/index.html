@@ -778,5 +778,4 @@ const note=$('shNote');let t;const flash=m=>{note.textContent=m;clearTimeout(t);
 $('shIg').addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:'Docsmith',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}try{await navigator.clipboard.writeText(url);flash('Link copied. Paste it on Instagram.')}catch(e){flash('Copy this link: '+url)}});})();
 </script>
 <script>if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
-<script src="../diwali.js" defer></script>
 </body></html>

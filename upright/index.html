@@ -758,5 +758,4 @@ $('shWa').href='https://wa.me/?text='+encodeURIComponent(text+' '+url);$('shX').
 const note=$('shNote');let t;const flash=m=>{note.textContent=m;clearTimeout(t);t=setTimeout(()=>{note.textContent=''},4500)};
 $('shIg').addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:'Upright',text,url});return}catch(e){if(e&&e.name==='AbortError')return}}try{await navigator.clipboard.writeText(url);flash('Link copied. Paste it on Instagram.')}catch(e){flash('Copy this link: '+url)}});})();
 </script>
-<script src="../diwali.js" defer></script>
 </body></html>
