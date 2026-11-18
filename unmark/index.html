@@ -116,6 +116,7 @@ input[type=range].sl::-moz-range-thumb{width:16px;height:16px;border-radius:50%;
 .acts{display:grid;gap:10px}
 .fmt2{display:flex;gap:8px;font-size:13px;color:var(--mut);align-items:center;justify-content:center}
 .fmt2 select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:5px 8px;font:inherit}
+.snap{display:flex;gap:9px;align-items:center;margin-top:12px;font-size:13px;color:var(--mut);cursor:pointer}.snap input{accent-color:var(--acc);width:16px;height:16px}
 .hint{color:var(--dim);font-size:13px;line-height:1.5}
 .hint b{color:var(--mut);font-weight:500}
 .msg2{min-height:20px;font-size:13px;color:#ffb199;margin-top:10px}
@@ -172,7 +173,7 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
     <div class="alt"><span>No photo handy?</span><button type="button" id="sample">Try the example</button></div>
     <p class="msg" id="msg" role="status"></p>
     <div class="facts">
-      <div><h2>Paint, don't select</h2><p>Brush or box over the mark. Several spots at once is fine.</p></div>
+      <div><h2>Paint, or let it find text</h2><p>Brush over the mark, or press Find text to mark watermark words for you.</p></div>
       <div><h2>Fills, doesn't blur</h2><p>The AI rebuilds textures, edges and patterns behind the mark.</p></div>
       <div><h2>Stays on your device</h2><p>No upload, no account, no watermark of ours on the result.</p></div>
     </div>
@@ -201,8 +202,11 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
           <button type="button" class="tl" data-tool="erase" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H9L4 15a2 2 0 010-3l8-8a2 2 0 013 0l5 5a2 2 0 010 3l-8 8"/></svg>Rub out</button>
         </div>
         <div class="row"><label for="size">Size</label><input class="sl" type="range" id="size" min="1" max="100" value="30"><output id="sizeO">30</output></div>
+        <div class="row"><label for="edge">Cover edges</label><input class="sl" type="range" id="edge" min="0" max="20" value="6"><output id="edgeO">6</output></div>
+        <button type="button" class="btn sm" id="findText" style="width:100%;margin-top:14px" disabled>Find text automatically</button>
+        <label class="snap"><input type="checkbox" id="snap" checked> Snap my brush to detected text</label>
         <div class="pair"><button type="button" class="btn sm" id="undoMark" disabled>Undo mark</button><button type="button" class="btn sm" id="clearMark" disabled>Clear marks</button></div>
-        <p class="hint" style="margin-top:12px"><b>Tip:</b> cover the whole mark, including its soft edge. For text, one wide stroke over the word works better than tracing letters.</p>
+        <p class="hint" style="margin-top:12px"><b>Tip:</b> for words, press <b>Find text</b> or brush across them. For logos, paint over the whole logo. Raise <b>Cover edges</b> if a faint outline is left.</p>
       </div>
       <div class="box acts">
         <button type="button" class="btn pri" id="go" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Remove marked area</button>
@@ -219,7 +223,7 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
   <div class="legal-grid">
     <section><h2>Privacy</h2><p>Photos are processed in your browser. They are not uploaded to or stored by this site. The page sets no cookies, runs no ads and has no visitor tracking. The AI engine and model are saved in your browser cache so the page starts faster next time. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
     <section><h2>Terms of use</h2><p>Use Unmark only on images you own, or that you have the right to edit. Do not use it to remove a copyright notice, credit or watermark from someone else&rsquo;s work in order to use that work without permission. Results are made automatically, can be imperfect, and are provided as is, without warranty of any kind. The AI invents plausible content to fill the gap, so do not rely on edited images as evidence, identification or records. Check each result before you use it.</p></section>
-    <section><h2>Credits</h2><p>Filling uses the LaMa inpainting model (&ldquo;big-lama&rdquo;, Apache-2.0) by Roman Suvorov, Samsung AI Center Moscow and colleagues, converted to ONNX for this site, and ONNX Runtime Web (MIT). Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The example photo is a stock-style image from this site with a made-up watermark added. Unmark is an independent project and is not affiliated with or endorsed by any other watermark-removal service.</p></section>
+    <section><h2>Credits</h2><p>Filling uses the LaMa inpainting model (&ldquo;big-lama&rdquo;, Apache-2.0) by Roman Suvorov, Samsung AI Center Moscow and colleagues, converted to ONNX for this site; automatic text finding uses the PP-OCR text-detection model from PaddleOCR (Apache-2.0), as packaged by RapidOCR; and ONNX Runtime Web (MIT). Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The example photo is a stock-style image from this site with a made-up watermark added. Unmark is an independent project and is not affiliated with or endorsed by any other watermark-removal service.</p></section>
   </div>
   <div class="legal-base">
     <div class="legal-text">
@@ -245,6 +249,13 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 Changes: the network was converted to ONNX with its Fourier layers rewritten as matrix products, and its weights were stored in half precision.</pre></div>
+<div><h3>PP-OCRv3 text detector (PaddleOCR, packaged by RapidOCR): Apache License 2.0</h3><p class="src">https://github.com/PaddlePaddle/PaddleOCR &middot; https://github.com/RapidAI/RapidOCR</p><pre>Copyright (c) PaddlePaddle Authors and RapidAI contributors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</pre></div>
 <div><h3>ONNX Runtime Web: MIT License</h3><p class="src">https://github.com/microsoft/onnxruntime</p><pre>MIT License
 
 Copyright (c) Microsoft Corporation
@@ -550,7 +561,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
 <script>
 (() => {
   'use strict';
-  const MF = {"total": 109186686, "parts": [["model/l01-8e31890db705.dat", 27296672], ["model/l02-363b90cf47bd.dat", 27296672], ["model/l03-b8824e94f76e.dat", 27296672], ["model/l04-56d948d9317a.dat", 27296670]], "sha": "40035647b5f37b29526613eaaeef658e608dbcc363504c092a0e42adce3e834d", "v": 1};
+  const MF = {"total": 109186686, "parts": [["model/l01-8e31890db705.dat", 27296672], ["model/l02-363b90cf47bd.dat", 27296672], ["model/l03-b8824e94f76e.dat", 27296672], ["model/l04-56d948d9317a.dat", 27296670]], "sha": "40035647b5f37b29526613eaaeef658e608dbcc363504c092a0e42adce3e834d", "det": ["model/det-3439588c030f.dat", 2432880], "v": 1};
   const $ = (s) => document.querySelector(s);
   const SZ = 512, MAXSIDE = 4096;
   const modelEl = $('#model'), modelText = $('#modelText');
@@ -568,6 +579,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   let hasMask = false;
 
   /* ---------- engine (worker) ---------- */
+  let detWait, detProm = null, textComps = null; const detPend = new Map();
+  function newDetWait() { detWait = {}; detWait.promise = new Promise((res, rej) => { detWait.res = res; detWait.rej = rej; }); detWait.promise.catch(() => {}); }
+  newDetWait();
   let worker = null, engineState = 'idle', enginePromise = null, reqId = 0; const pend = new Map();
   function startEngine() {
     if (enginePromise && engineState !== 'error') return enginePromise;
@@ -579,6 +593,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
         if (m.type === 'progress') setModel('loading', 'Loading AI model ' + Math.round(m.frac * 100) + '%');
         else if (m.type === 'stage') setModel('loading', m.text);
         else if (m.type === 'ready') { engineState = 'ready'; setModel('ready', 'AI engine ready'); res(); }
+        else if (m.type === 'detready') detWait.res();
+        else if (m.type === 'detfail') { detWait.rej(new Error(m.error)); detPend.forEach((p) => p.rej(new Error(m.error))); detPend.clear(); }
+        else if (m.type === 'det') { const p = detPend.get(m.id); if (p) { detPend.delete(m.id); p.res(m); } }
         else if (m.type === 'result') { const p = pend.get(m.id); if (p) { pend.delete(m.id); p.res(m.out); } }
         else if (m.type === 'fail') {
           const p = m.id && pend.get(m.id);
@@ -588,11 +605,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       };
       worker.onerror = (e) => { engineState = 'error'; setModel('error', 'AI engine failed'); $('#modelRetry').hidden = false; rej(new Error(e.message || 'worker error')); };
       worker.postMessage({ type: 'init', parts: MF.parts, v: MF.v, total: MF.total });
+      worker.postMessage({ type: 'detinit', det: MF.det });
     });
     enginePromise.catch(() => {});
     return enginePromise;
   }
-  $('#modelRetry').addEventListener('click', () => { if (worker) worker.terminate(); worker = null; engineState = 'idle'; enginePromise = null; startEngine().catch(() => {}); });
+  $('#modelRetry').addEventListener('click', () => { if (worker) worker.terminate(); worker = null; newDetWait(); detProm = null; engineState = 'idle'; enginePromise = null; startEngine().catch(() => {}); });
   function infer(rgb, mask) {
     return new Promise((res, rej) => { const id = ++reqId; pend.set(id, { res, rej }); worker.postMessage({ type: 'run', id, rgb, mask }, [rgb.buffer, mask.buffer]); });
   }
@@ -613,7 +631,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     $('#start').hidden = true; $('#app').hidden = false; $('#tag').hidden = true;
     refresh();
     if (k < 1) $('#msg2').textContent = 'Large photo reduced to ' + W + ' × ' + H + ' px.';
-    startEngine().catch(() => {});
+    startEngine().catch(() => {}); startDetect();
     scrollTo({ top: 0 });
   }
   const fileIn = $('#file');
@@ -625,6 +643,85 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   document.addEventListener('paste', (e) => { const it = Array.from((e.clipboardData && e.clipboardData.items) || []).find((x) => /^image\//.test(x.type)); if (it) { const f = it.getAsFile(); if (f) handleBlob(f, 'pasted'); } });
   $('#sample').addEventListener('click', async () => { try { const r = await fetch('sample.jpg'); handleBlob(await r.blob(), 'sample.jpg'); } catch (e) { say('Could not load the example.'); } });
   $('#again').addEventListener('click', () => { if (busy) return; $('#app').hidden = true; $('#start').hidden = false; say(''); });
+
+  /* ---------- automatic text finding ---------- */
+  let detId = 0;
+  function labelComps(bin, w, h) {            // 8-connected components of a 0/1 map; returns label map and count
+    const lab = new Int32Array(w * h), st = []; let n = 0;
+    for (let i = 0; i < bin.length; i++) {
+      if (!bin[i] || lab[i]) continue; n++; lab[i] = n; st.push(i);
+      while (st.length) { const c = st.pop(), cx = c % w, cy = (c / w) | 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const x = cx + dx, y = cy + dy; if (x < 0 || y < 0 || x >= w || y >= h) continue; const j = y * w + x; if (bin[j] && !lab[j]) { lab[j] = n; st.push(j); } } }
+    }
+    return { lab, n };
+  }
+  function detectMap(sc) {
+    const dw = Math.max(32, Math.round(W * sc / 32) * 32), dh = Math.max(32, Math.round(H * sc / 32) * 32);
+    const c = document.createElement('canvas'); c.width = dw; c.height = dh; const x = c.getContext('2d', { willReadFrequently: true });
+    x.imageSmoothingQuality = 'high'; x.drawImage(imgC, 0, 0, dw, dh);
+    const px = x.getImageData(0, 0, dw, dh).data, pl = dw * dh, data = new Float32Array(3 * pl), mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
+    for (let i = 0; i < pl; i++) { data[i] = (px[i * 4 + 2] / 255 - mean[0]) / std[0]; data[pl + i] = (px[i * 4 + 1] / 255 - mean[1]) / std[1]; data[2 * pl + i] = (px[i * 4] / 255 - mean[2]) / std[2]; }
+    return new Promise((res, rej) => { const id = ++detId; detPend.set(id, { res, rej }); worker.postMessage({ type: 'detect', id, data, h: dh, w: dw }, [data.buffer]); });
+  }
+  async function runDetect() {
+    if (engineState === 'idle') startEngine().catch(() => {});
+    await detWait.promise;
+    const s1 = Math.min(1, 1280 / Math.max(W, H));
+    const m = await detectMap(s1), w = m.w, h = m.h, prob = new Float32Array(m.prob);
+    if (Math.max(W, H) * s1 > 400) {          // large lettering is easier to see at a smaller size, so take the best of both
+      const m2 = await detectMap(s1 * 0.5);
+      for (let y = 0; y < h; y++) { const yy = Math.min(m2.h - 1, Math.floor(y * m2.h / h)); for (let x = 0; x < w; x++) { const v = m2.prob[yy * m2.w + Math.min(m2.w - 1, Math.floor(x * m2.w / w))]; if (v > prob[y * w + x]) prob[y * w + x] = v; } }
+    }
+    const bin = new Uint8Array(w * h);
+    for (let i = 0; i < bin.length; i++) bin[i] = prob[i] > 0.3 ? 1 : 0;
+    const { lab, n } = labelComps(dilate(bin, w, h, 3), w, h);
+    const bx0 = new Int32Array(n + 1).fill(1e9), by0 = new Int32Array(n + 1).fill(1e9), bx1 = new Int32Array(n + 1).fill(-1), by1 = new Int32Array(n + 1).fill(-1), area = new Int32Array(n + 1), pk = new Float32Array(n + 1);
+    for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) { const i = y * w + xx; if (!bin[i]) continue; const l = lab[i]; if (xx < bx0[l]) bx0[l] = xx; if (xx > bx1[l]) bx1[l] = xx; if (y < by0[l]) by0[l] = y; if (y > by1[l]) by1[l] = y; area[l]++; if (prob[i] > pk[l]) pk[l] = prob[i]; }
+    const comps = [], kx = W / w, ky = H / h;
+    for (let l = 1; l <= n; l++) {
+      if (area[l] < 25 || pk[l] < 0.6) continue;
+      const bw = bx1[l] - bx0[l] + 1, bh = by1[l] - by0[l] + 1, rect = area[l] / (bw * bh) >= 0.35;
+      const pad = Math.max(2, Math.min(rect ? 60 : 24, Math.round(1.6 * (bw * bh) / (2 * (bw + bh)))));
+      const fx0 = Math.max(0, bx0[l] - pad), fy0 = Math.max(0, by0[l] - pad), fx1 = Math.min(w - 1, bx1[l] + pad), fy1 = Math.min(h - 1, by1[l] + pad), fw = fx1 - fx0 + 1, fh = fy1 - fy0 + 1;
+      const fill = new Uint8Array(fw * fh);
+      if (rect) fill.fill(1);
+      else { const loc = new Uint8Array(fw * fh); for (let y = fy0; y <= fy1; y++) for (let xx = fx0; xx <= fx1; xx++) if (bin[y * w + xx] && lab[y * w + xx] === l) loc[(y - fy0) * fw + xx - fx0] = 1; fill.set(dilate(loc, fw, fh, pad)); }
+      comps.push({ x0: fx0 * kx, y0: fy0 * ky, x1: (fx1 + 1) * kx, y1: (fy1 + 1) * ky, fx0, fy0, fw, fh, fill, kx, ky });
+    }
+    return comps;
+  }
+  function startDetect() {
+    textComps = null; $('#findText').disabled = true;
+    detProm = runDetect().then((c) => { textComps = c; refresh(); return c; }).catch(() => { textComps = []; detProm = null; refresh(); return null; });
+    return detProm;
+  }
+  const dc = document.createElement('canvas'), dcx = dc.getContext('2d');
+  function paintComp(c) {
+    dc.width = c.fw; dc.height = c.fh; const id = new ImageData(c.fw, c.fh), d = id.data;
+    for (let i = 0; i < c.fill.length; i++) if (c.fill[i]) { d[i * 4] = 255; d[i * 4 + 1] = 59; d[i * 4 + 2] = 107; d[i * 4 + 3] = 255; }
+    dcx.putImageData(id, 0, 0); maskX.imageSmoothingQuality = 'high';
+    maskX.drawImage(dc, c.fx0 * c.kx, c.fy0 * c.ky, c.fw * c.kx, c.fh * c.ky);
+  }
+  $('#findText').addEventListener('click', async () => {
+    if (busy) return; const b = $('#findText'); b.disabled = true; b.textContent = 'Looking for text…'; $('#msg2').textContent = '';
+    try {
+      const comps = await (detProm || startDetect());
+      if (comps === null) $('#msg2').textContent = 'Automatic text finding is not available right now. You can still paint over the mark.';
+      else if (!comps.length) $('#msg2').textContent = 'No text found. If the mark is a logo, paint over it.';
+      else { snapMask(); comps.forEach(paintComp); checkMask(); $('#msg2').textContent = 'Marked ' + comps.length + ' piece' + (comps.length > 1 ? 's' : '') + ' of text. Rub out anything you want to keep, then press Remove.'; }
+    } catch (e) { $('#msg2').textContent = 'Automatic text finding failed. You can still paint over the mark.'; }
+    b.textContent = 'Find text automatically'; refresh();
+  });
+  function snapText() {                       // after a stroke, complete any detected text it mostly touched
+    if (!$('#snap').checked || !textComps || !textComps.length) return;
+    const d = maskX.getImageData(0, 0, W, H).data; let added = 0;
+    for (const c of textComps) {
+      const xa = Math.max(0, Math.floor(c.x0)), ya = Math.max(0, Math.floor(c.y0)), xb = Math.min(W, Math.ceil(c.x1)), yb = Math.min(H, Math.ceil(c.y1));
+      let hit = 0, tot = 0; for (let y = ya; y < yb; y += 2) for (let x = xa; x < xb; x += 2) { tot++; if (d[(y * W + x) * 4 + 3] > 40) hit++; }
+      if (tot && hit / tot >= 0.12 && hit / tot < 0.97) { paintComp(c); added++; }
+    }
+    if (added) $('#msg2').textContent = 'Snapped to ' + added + ' piece' + (added > 1 ? 's' : '') + ' of text.';
+  }
 
   /* ---------- painting the mask ---------- */
   const cv = $('#cv'), ring = $('#ring');
@@ -663,7 +760,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     e.preventDefault();
     if (tool === 'box') { boxNow = p; boxPreview(); } else { paint(last, p); last = p; }
   });
-  const endStroke = () => { if (!drawing) return; drawing = false; boxStart = boxNow = null; checkMask(); };
+  const endStroke = () => { if (!drawing) return; drawing = false; boxStart = boxNow = null; if (tool !== 'erase') snapText(); checkMask(); };
   cv.addEventListener('pointerup', endStroke); cv.addEventListener('pointercancel', endStroke);
   cv.addEventListener('pointerleave', () => { if (!drawing) ring.style.display = 'none'; });
   function checkMask() {
@@ -673,10 +770,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   }
   document.querySelectorAll('.tl').forEach((b) => b.addEventListener('click', () => { tool = b.dataset.tool; document.querySelectorAll('.tl').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
   $('#size').addEventListener('input', () => { $('#sizeO').textContent = $('#size').value; });
+  $('#edge').addEventListener('input', () => { $('#edgeO').textContent = $('#edge').value; });
   $('#undoMark').addEventListener('click', () => { if (busy || !markHist.length) return; maskX.putImageData(markHist.pop(), 0, 0); checkMask(); });
   $('#clearMark').addEventListener('click', () => { if (busy) return; snapMask(); maskX.clearRect(0, 0, W, H); checkMask(); });
   function refresh() {
-    $('#go').disabled = busy || !hasMask; $('#undoMark').disabled = busy || !markHist.length; $('#clearMark').disabled = busy || !hasMask;
+    $('#go').disabled = busy || !hasMask; $('#findText').disabled = busy || textComps === null; $('#undoMark').disabled = busy || !markHist.length; $('#clearMark').disabled = busy || !hasMask;
     $('#undo').disabled = busy || !imgHist.length; $('#compare').disabled = busy || !imgHist.length; $('#dl').disabled = busy || !imgHist.length;
   }
   addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !$('#app').hidden) { e.preventDefault(); if (markHist.length) $('#undoMark').click(); else $('#undo').click(); } });
@@ -724,7 +822,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       if (engineState !== 'ready') { $('#busyEta').textContent = 'Downloading the AI model once. Later runs are instant to start.'; await startEngine(); }
       const md = maskX.getImageData(0, 0, W, H).data, raw = new Uint8Array(W * H);
       for (let i = 0; i < raw.length; i++) raw[i] = md[i * 4 + 3] > 40 ? 1 : 0;
-      const r = Math.max(2, Math.min(12, Math.round(Math.min(W, H) * 0.005)));
+      const r = Math.max(0, Math.min(24, Math.round(Math.min(W, H) * (+$('#edge').value) / 600)));
       const pending = dilate(raw, W, H, r);
       let bx0 = W, by0 = H, bx1 = -1, by1 = -1;
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (pending[y * W + x]) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; }
@@ -783,7 +881,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
         $('#busyEta').textContent = done < total ? 'About ' + eta + ' s left' : '';
         await new Promise((r2) => setTimeout(r2, 0));
       }
-      maskX.clearRect(0, 0, W, H); markHist.length = 0; hasMask = false;
+      maskX.clearRect(0, 0, W, H); markHist.length = 0; hasMask = false; startDetect();
       if (cancelFlag && done < total) $('#msg2').textContent = 'Stopped. Part of the marked area was filled.';
     } catch (e) {
       if (imgHist.length) { imgX.putImageData(imgHist.pop(), 0, 0); }
