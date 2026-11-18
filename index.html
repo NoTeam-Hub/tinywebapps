@@ -91,7 +91,7 @@ h1 .ln:nth-child(2)>span{animation-delay:.12s}
 .stack{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:clamp(40px,7vh,80px)}
 .card{--c:var(--acc-rgb);position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:320px;padding:26px;border-radius:26px;background:var(--glass);border:1px solid var(--line);overflow:hidden;isolation:isolate;
   transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s var(--ease),border-color .3s;will-change:transform}
-.card:nth-child(1){grid-column:span 7}.card:nth-child(2){grid-column:span 5}.card:nth-child(3){grid-column:span 5}.card:nth-child(4){grid-column:span 7}.card:nth-child(5){grid-column:span 6}.card:nth-child(6){grid-column:span 6}.card:nth-child(7){grid-column:span 12;min-height:0}
+.card:nth-child(1){grid-column:span 7}.card:nth-child(2){grid-column:span 5}.card:nth-child(3){grid-column:span 5}.card:nth-child(4){grid-column:span 7}.card:nth-child(5){grid-column:span 6}.card:nth-child(6){grid-column:span 6}.card:nth-child(7){grid-column:span 6}.card:nth-child(8){grid-column:span 6}
 .card::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),rgba(var(--c),.22),transparent 60%);opacity:0;transition:opacity .3s}
 .card:hover{border-color:rgba(var(--c),.55)}
 .card:hover::before{opacity:1}
