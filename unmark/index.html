@@ -206,7 +206,7 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
         <button type="button" class="btn sm" id="findText" style="width:100%;margin-top:14px" disabled>Find text automatically</button>
         <label class="snap"><input type="checkbox" id="snap" checked> Snap my brush to detected text</label>
         <div class="pair"><button type="button" class="btn sm" id="undoMark" disabled>Undo mark</button><button type="button" class="btn sm" id="clearMark" disabled>Clear marks</button></div>
-        <p class="hint" style="margin-top:12px"><b>Tip:</b> for words, press <b>Find text</b> or brush across them. For logos, paint over the whole logo. Raise <b>Cover edges</b> if a faint outline is left.</p>
+        <p class="hint" style="margin-top:12px"><b>Tip:</b> Rub out: tap a pink text piece to drop it, or drag to rub part away. For words, press <b>Find text</b> or brush across them. For logos, paint over the whole logo. Raise <b>Cover edges</b> if a faint outline is left.</p>
       </div>
       <div class="box acts">
         <button type="button" class="btn pri" id="go" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Remove marked area</button>
@@ -708,24 +708,39 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       const comps = await (detProm || startDetect());
       if (comps === null) $('#msg2').textContent = 'Automatic text finding is not available right now. You can still paint over the mark.';
       else if (!comps.length) $('#msg2').textContent = 'No text found. If the mark is a logo, paint over it.';
-      else { snapMask(); comps.forEach(paintComp); checkMask(); $('#msg2').textContent = 'Marked ' + comps.length + ' piece' + (comps.length > 1 ? 's' : '') + ' of text. Rub out anything you want to keep, then press Remove.'; }
+      else { snapMask(); comps.forEach((c) => { c.off = false; paintComp(c); }); checkMask(); $('#msg2').textContent = 'Marked ' + comps.length + ' piece' + (comps.length > 1 ? 's' : '') + ' of text. Rub out anything you want to keep, then press Remove.'; }
     } catch (e) { $('#msg2').textContent = 'Automatic text finding failed. You can still paint over the mark.'; }
     b.textContent = 'Find text automatically'; refresh();
   });
+  function eraseComp(c) {                     // take a detected piece of text out of the marks, and keep it out
+    dc.width = c.fw; dc.height = c.fh; const id = new ImageData(c.fw, c.fh), d = id.data;
+    for (let i = 0; i < c.fill.length; i++) if (c.fill[i]) { d[i * 4 + 3] = 255; }
+    dcx.putImageData(id, 0, 0); maskX.save(); maskX.globalCompositeOperation = 'destination-out'; maskX.imageSmoothingQuality = 'high';
+    const gx = 1.5 * c.kx, gy = 1.5 * c.ky;
+    maskX.drawImage(dc, c.fx0 * c.kx - gx, c.fy0 * c.ky - gy, c.fw * c.kx + 2 * gx, c.fh * c.ky + 2 * gy); maskX.restore(); c.off = true;
+  }
+  function compAt(x, y) {
+    if (!textComps) return null;
+    for (const c of textComps) {
+      const fx = Math.floor(x / c.kx) - c.fx0, fy = Math.floor(y / c.ky) - c.fy0;
+      if (fx >= 0 && fy >= 0 && fx < c.fw && fy < c.fh && c.fill[fy * c.fw + fx]) return c;
+    }
+    return null;
+  }
   function snapText() {                       // after a stroke, complete any detected text it mostly touched
     if (!$('#snap').checked || !textComps || !textComps.length) return;
     const d = maskX.getImageData(0, 0, W, H).data; let added = 0;
     for (const c of textComps) {
       const xa = Math.max(0, Math.floor(c.x0)), ya = Math.max(0, Math.floor(c.y0)), xb = Math.min(W, Math.ceil(c.x1)), yb = Math.min(H, Math.ceil(c.y1));
       let hit = 0, tot = 0; for (let y = ya; y < yb; y += 2) for (let x = xa; x < xb; x += 2) { tot++; if (d[(y * W + x) * 4 + 3] > 40) hit++; }
-      if (tot && hit / tot >= 0.12 && hit / tot < 0.97) { paintComp(c); added++; }
+      if (!c.off && tot && hit / tot >= 0.12 && hit / tot < 0.97) { paintComp(c); added++; }
     }
     if (added) $('#msg2').textContent = 'Snapped to ' + added + ' piece' + (added > 1 ? 's' : '') + ' of text.';
   }
 
   /* ---------- painting the mask ---------- */
   const cv = $('#cv'), ring = $('#ring');
-  const brushPx = () => Math.max(3, Math.round(Math.min(W, H) * (+$('#size').value) / 300));
+  const brushPx = () => Math.max(3, Math.round(Math.min(W, H) * (+$('#size').value) / 300 * (tool === 'erase' ? 1.6 : 1)));
   function pos(e) { const r = imgC.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height, cx: e.clientX - r.left, cy: e.clientY - r.top, k: r.width / W }; }
   function showRing(p) {
     if (tool === 'box') { ring.style.display = 'none'; return; }
@@ -751,7 +766,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   cv.addEventListener('pointerdown', (e) => {
     if (busy || e.button > 0) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
     const p = pos(e); drawing = true; snapMask();
-    if (tool === 'box') { boxStart = boxNow = p; } else { last = p; paint(p, p); }
+    if (tool === 'box') { boxStart = boxNow = p; }
+    else {
+      if (tool === 'erase') { const c = compAt(p.x, p.y); if (c) { eraseComp(c); $('#msg2').textContent = 'Removed that piece of text from the marks.'; } }
+      last = p; paint(p, p);
+    }
     showRing(p);
   });
   cv.addEventListener('pointermove', (e) => {
@@ -760,15 +779,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     e.preventDefault();
     if (tool === 'box') { boxNow = p; boxPreview(); } else { paint(last, p); last = p; }
   });
-  const endStroke = () => { if (!drawing) return; drawing = false; boxStart = boxNow = null; if (tool !== 'erase') snapText(); checkMask(); };
+  const endStroke = () => { if (!drawing) return; drawing = false; boxStart = boxNow = null; if (tool !== 'erase') snapText(); else dismissErased(); checkMask(); };
   cv.addEventListener('pointerup', endStroke); cv.addEventListener('pointercancel', endStroke);
   cv.addEventListener('pointerleave', () => { if (!drawing) ring.style.display = 'none'; });
+  function dismissErased() {
+    if (!textComps || !textComps.length) return;
+    const d = maskX.getImageData(0, 0, W, H).data;
+    for (const c of textComps) {
+      if (c.off) continue; let on = 0, tot = 0;
+      for (let fy = 0; fy < c.fh; fy += 2) for (let fx = 0; fx < c.fw; fx += 2) if (c.fill[fy * c.fw + fx]) { tot++; const x = Math.min(W - 1, Math.round((c.fx0 + fx) * c.kx)), y = Math.min(H - 1, Math.round((c.fy0 + fy) * c.ky)); if (d[(y * W + x) * 4 + 3] > 40) on++; }
+      if (tot && on / tot < 0.6) c.off = true;
+    }
+  }
   function checkMask() {
     const d = maskX.getImageData(0, 0, W, H).data; let any = false;
     for (let i = 3; i < d.length; i += 4) if (d[i] > 40) { any = true; break; }
     hasMask = any; refresh();
   }
-  document.querySelectorAll('.tl').forEach((b) => b.addEventListener('click', () => { tool = b.dataset.tool; document.querySelectorAll('.tl').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
+  document.querySelectorAll('.tl').forEach((b) => b.addEventListener('click', () => { tool = b.dataset.tool; cv.style.cursor = tool === 'box' ? 'crosshair' : ''; ring.style.display = 'none'; document.querySelectorAll('.tl').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
   $('#size').addEventListener('input', () => { $('#sizeO').textContent = $('#size').value; });
   $('#edge').addEventListener('input', () => { $('#edgeO').textContent = $('#edge').value; });
   $('#undoMark').addEventListener('click', () => { if (busy || !markHist.length) return; maskX.putImageData(markHist.pop(), 0, 0); checkMask(); });
@@ -812,7 +840,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
 
   function setBusy(on, title) {
     busy = on; $('#busy').hidden = !on; if (title) $('#busyT').textContent = title; refresh();
-    cv.style.cursor = on ? 'default' : '';
+    cv.style.cursor = on ? 'default' : (tool === 'box' ? 'crosshair' : '');
   }
 
   async function removeMarked() {
