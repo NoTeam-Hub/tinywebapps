@@ -1,0 +1,15 @@
+{
+  "name": "Unmark: watermark and object remover",
+  "short_name": "Unmark",
+  "description": "Paint over a watermark or object and Unmark fills it in on your device.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0c0e",
+  "theme_color": "#0b0c0e",
+  "icons": [
+    {"src": "brand/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "brand/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "brand/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

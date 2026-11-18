@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>if(!/\/$|\.html?$/.test(location.pathname))location.replace(location.pathname+"/"+location.search+location.hash);</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unmark: remove watermarks and unwanted objects from photos, free and private</title>
+<meta name="description" content="Paint over a watermark, logo, date stamp or stray object and Unmark fills it in with AI that runs on your device. Free, no sign-up, nothing is uploaded.">
+<link rel="canonical" href="https://tinywebapps.in/unmark/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0b0c0e">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tiny Web Apps">
+<meta property="og:title" content="Unmark: remove watermarks and objects from photos, free and private">
+<meta property="og:description" content="Paint over it and it disappears. AI fills the gap on your device. Nothing is uploaded.">
+<meta property="og:url" content="https://tinywebapps.in/unmark/">
+<meta property="og:image" content="https://tinywebapps.in/og/unmark.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tinywebapps.in/og/unmark.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Unmark","url":"https://tinywebapps.in/unmark/","description":"Remove watermarks, logos, date stamps and unwanted objects from photos with AI that runs in your browser.","applicationCategory":"MultimediaApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<style>
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces.woff2) format("woff2")}
+@font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-i.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-weight:400 700;font-display:swap;src:url(fonts/instrument.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:400;font-display:swap;src:url(fonts/jbmono.woff2) format("woff2")}
+:root{--bg:#0b0c0e;--panel:#121417;--ink:#efeae2;--mut:#a8a399;--dim:#76726a;--line:rgba(239,234,226,.12);--acc:#4fd1b0;--acc2:#b6f08a;--acc-rgb:79,209,176;--ease:cubic-bezier(.2,.7,.2,1);
+--serif:"Fraunces",Georgia,serif;--sans:"Instrument Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--sans);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:70vh;background:radial-gradient(60% 60% at 25% 30%,rgba(79,209,176,.17),transparent 70%),radial-gradient(50% 55% at 78% 20%,rgba(182,240,138,.10),transparent 70%);pointer-events:none;z-index:-1}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:6px}
+[hidden]{display:none!important}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(16px,4vw,44px);max-width:1240px;width:100%;margin:0 auto;flex-wrap:wrap}
+.top .lhs{display:flex;align-items:center;gap:8px 20px;flex-wrap:wrap}
+.back{font:400 13px var(--mono);color:var(--mut);text-decoration:none;letter-spacing:.02em}
+.back:hover{color:var(--ink)}
+.brand{display:flex;align-items:center;gap:10px;font:500 15px var(--sans)}
+.brand svg{width:26px;height:26px}
+.chip{display:inline-flex;align-items:center;gap:8px;font:400 12px var(--mono);color:var(--mut);border:1px solid var(--line);padding:5px 11px;border-radius:99px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--dim);display:block}
+.chip[data-state=ready] i{background:#5fd39a}
+.chip[data-state=loading] i{background:var(--acc);animation:pulse 1s ease-in-out infinite}
+.chip[data-state=error] i{background:#ff5d5d}
+@keyframes pulse{50%{opacity:.35}}
+.mini{border:1px solid var(--line);color:var(--ink);font:400 12px var(--mono);padding:5px 11px;border-radius:99px}
+.mini:hover:not(:disabled){border-color:var(--ink)}
+.modelbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:0 clamp(16px,4vw,44px) 40px}
+.hero{padding:clamp(18px,5vw,56px) 0 22px;text-align:center}
+.kick{font:400 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+h1{font:400 clamp(40px,7.4vw,92px)/.98 var(--serif);letter-spacing:-.025em;margin:16px auto 18px;max-width:14ch;font-variation-settings:"opsz" 144}
+h1 em{color:var(--acc);font-style:italic}
+.sub{color:var(--mut);max-width:58ch;margin:0 auto;font-size:clamp(15px,1.8vw,18px)}
+.drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin:34px auto 0;max-width:820px;min-height:clamp(220px,34vh,330px);padding:28px;border:1.5px dashed rgba(239,234,226,.28);border-radius:28px;text-align:center;transition:border-color .2s,background .2s,transform .2s}
+.drop:hover,.drop.over{border-color:var(--acc);background:rgba(var(--acc-rgb),.07)}
+.drop.over{transform:scale(1.015)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop .ic{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#08140f}
+.drop .ic svg{width:28px;height:28px}
+.drop b{font:400 clamp(22px,3vw,30px)/1.1 var(--serif)}
+.drop small{color:var(--mut);font-size:14px}
+.drop .fmt{font:400 11px var(--mono);color:var(--dim);letter-spacing:.06em}
+.alt{display:flex;gap:10px 18px;flex-wrap:wrap;justify-content:center;margin-top:16px;font-size:14px;color:var(--mut)}
+.alt button{color:var(--ink);text-decoration:underline;text-decoration-color:rgba(var(--acc-rgb),.7);text-underline-offset:4px}
+.alt button:hover{color:var(--acc)}
+.msg{min-height:22px;margin-top:12px;text-align:center;color:#ffb199;font-size:14px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);margin:34px auto 0;max-width:980px;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.facts div{padding:20px 22px;border-right:1px solid var(--line)}
+.facts div:last-child{border-right:0}
+.facts h2{font:400 22px/1.1 var(--serif);margin-bottom:6px}
+.facts p{color:var(--mut);font-size:14px}
+.note{max-width:980px;margin:16px auto 0;color:var(--dim);font:400 12px/1.6 var(--mono);text-align:center}
+.work{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:26px;padding-top:6px;align-items:start}
+.stage{position:relative;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:repeating-conic-gradient(#0d0e10 0 25%,#0a0b0c 0 50%) 0 0/20px 20px;display:grid;place-items:center;min-height:260px}
+.cv{position:relative;line-height:0;max-width:100%;touch-action:none;user-select:none;-webkit-user-select:none;cursor:none}
+.cv canvas{display:block;max-width:100%;height:auto;max-height:min(76vh,880px);width:auto}
+.cv #mask{position:absolute;inset:0;width:100%;height:100%;max-height:none;pointer-events:none;opacity:.62}
+.cv #orig{position:absolute;inset:0;width:100%;height:100%;max-height:none;pointer-events:none}
+.ring{position:absolute;pointer-events:none;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.55),inset 0 0 0 1px rgba(0,0,0,.35);transform:translate(-50%,-50%);display:none}
+.tag{position:absolute;top:12px;left:12px;font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border-radius:99px;background:rgba(10,11,12,.7);backdrop-filter:blur(6px);line-height:1.2;pointer-events:none;z-index:2}
+.busy{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,9,10,.7);backdrop-filter:blur(3px);z-index:3;padding:18px}
+.busy .card{width:min(420px,100%);padding:22px;border:1px solid var(--line);border-radius:20px;background:rgba(18,20,23,.94)}
+.busy h2{font:400 24px/1.1 var(--serif);margin-bottom:12px}
+.bar2{height:6px;border-radius:9px;background:rgba(239,234,226,.1);overflow:hidden}
+.bar2 i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .2s}
+.eta{margin-top:8px;font:400 12px var(--mono);color:var(--mut);min-height:18px}
+.cancel{margin-top:10px;font-size:13px;color:var(--mut);text-decoration:underline;text-underline-offset:3px}
+.panel{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);min-width:0}
+.box{border:1px solid var(--line);border-radius:18px;padding:16px 18px;background:rgba(239,234,226,.02);min-width:0}
+.box h3{font:400 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:12px}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tl{display:grid;gap:4px;justify-items:center;padding:10px 6px;border-radius:12px;border:1px solid var(--line);font-size:13px;color:var(--mut);transition:border-color .2s,color .2s,background .2s}
+.tl svg{width:20px;height:20px}
+.tl[aria-pressed=true]{border-color:var(--acc);color:var(--ink);background:rgba(var(--acc-rgb),.1)}
+.row{display:flex;align-items:center;gap:12px;font-size:14px;margin-top:14px}
+.row label{min-width:62px;color:var(--mut)}
+.row output{font:400 12px var(--mono);color:var(--mut);min-width:38px;text-align:right}
+input[type=range].sl{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:9px;background:rgba(239,234,226,.16);outline-offset:6px}
+input[type=range].sl::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--acc);border:3px solid #08140f;cursor:pointer}
+input[type=range].sl::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--acc);border:3px solid #08140f;cursor:pointer}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 16px;border-radius:14px;font-weight:600;border:1px solid var(--line);transition:transform .15s,background .2s}
+.btn.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#08140f;border:0}
+.btn.pri:hover:not(:disabled){transform:translateY(-1px)}
+.btn:not(.pri):hover:not(:disabled){background:rgba(239,234,226,.06)}
+.btn svg{width:18px;height:18px}
+.btn.sm{padding:10px 12px;font-weight:500;font-size:14px}
+.acts{display:grid;gap:10px}
+.fmt2{display:flex;gap:8px;font-size:13px;color:var(--mut);align-items:center;justify-content:center}
+.fmt2 select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:5px 8px;font:inherit}
+.hint{color:var(--dim);font-size:13px;line-height:1.5}
+.hint b{color:var(--mut);font-weight:500}
+.msg2{min-height:20px;font-size:13px;color:#ffb199;margin-top:10px}
+footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;margin:20px auto 0}
+.share{display:flex;align-items:center;gap:8px}
+.share .lbl{font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.sb{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--mut);transition:color .2s,border-color .2s}
+.sb:hover{color:var(--acc);border-color:var(--acc)}
+.sb svg{width:17px;height:17px}
+.snote{font:400 12px var(--mono);color:var(--acc);min-width:90px}
+.legal{border-top:1px solid var(--line);margin-top:20px;padding-top:26px}
+.legal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 30px;margin-bottom:22px}
+.legal h2{font:400 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.legal p{color:var(--dim);font-size:13px;line-height:1.6}
+.legal-base{display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:space-between;align-items:flex-start;padding-top:18px;border-top:1px solid var(--line)}
+.legal-text{flex:1 1 520px;display:grid;gap:8px;min-width:0}
+.legal-grid p,.legal-text p{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+.legal a{color:var(--mut);text-underline-offset:3px}.legal a:hover{color:var(--ink)}
+.legal .credit{color:var(--mut)}
+.licenses{margin-top:18px;border:1px solid var(--line);border-radius:14px}
+.licenses summary{cursor:pointer;padding:12px 16px;font-size:14px;color:var(--mut)}
+.licenses-body{padding:4px 16px 16px;display:grid;gap:18px}
+.licenses h3{font:500 14px var(--sans);color:var(--ink);margin-bottom:4px}
+.licenses .src{font:400 12px var(--mono);color:var(--dim);margin-bottom:6px}
+.licenses pre{font:400 11.5px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;max-height:220px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+@media(max-width:820px){.legal-grid{grid-template-columns:1fr}}
+@media(max-width:980px){.work{grid-template-columns:1fr}.facts{grid-template-columns:1fr}.facts div{border-right:0;border-bottom:1px solid var(--line)}.facts div:last-child{border-bottom:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="lhs">
+    <a class="back" href="../">&larr; tinywebapps.in</a>
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="9" fill="#4fd1b0"/><path d="M10 21l7-9 5 4-6 7h-4z" fill="#08140f"/><path d="M8 25h16" stroke="#08140f" stroke-width="2" stroke-linecap="round"/></svg>Unmark</div>
+  </div>
+  <div class="modelbar">
+    <span class="chip" id="model" data-state="idle" role="status"><i></i><span id="modelText">AI engine not loaded</span></span>
+    <button type="button" class="mini" id="modelRetry" hidden>Retry</button>
+  </div>
+</header>
+<main>
+  <section id="start" class="hero">
+    <p class="kick">Remove watermarks &amp; objects</p>
+    <h1>Paint it. <em>Gone.</em></h1>
+    <p class="sub">Drop a photo, brush over a watermark, logo, date stamp or stray object, and AI fills the gap with what should be there. It runs on your device, so your photo never leaves it.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept="image/*">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg></span>
+      <b>Drop a photo here</b>
+      <small>or click to choose &middot; you can also paste with Ctrl+V</small>
+      <span class="fmt">JPG &middot; PNG &middot; WEBP</span>
+    </label>
+    <div class="alt"><span>No photo handy?</span><button type="button" id="sample">Try the example</button></div>
+    <p class="msg" id="msg" role="status"></p>
+    <div class="facts">
+      <div><h2>Paint, don't select</h2><p>Brush or box over the mark. Several spots at once is fine.</p></div>
+      <div><h2>Fills, doesn't blur</h2><p>The AI rebuilds textures, edges and patterns behind the mark.</p></div>
+      <div><h2>Stays on your device</h2><p>No upload, no account, no watermark of ours on the result.</p></div>
+    </div>
+    <p class="note">The first run downloads the AI model (about 110 MB) once; your browser keeps it for next time.</p>
+  </section>
+
+  <section id="app" class="work" hidden>
+    <div class="stage" id="stage">
+      <div class="cv" id="cv">
+        <canvas id="img"></canvas>
+        <canvas id="orig" hidden></canvas>
+        <canvas id="mask"></canvas>
+        <div class="ring" id="ring"></div>
+      </div>
+      <span class="tag" id="tag" hidden>Original</span>
+      <div class="busy" id="busy" hidden role="alert">
+        <div class="card"><h2 id="busyT">Working</h2><div class="bar2"><i id="busyBar"></i></div><p class="eta" id="busyEta"></p><button type="button" class="cancel" id="cancel">Stop after this step</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="box">
+        <h3>Mark what to remove</h3>
+        <div class="tools" role="group" aria-label="Tool">
+          <button type="button" class="tl" data-tool="brush" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 5-1 5-4a3 3 0 00-3-3c-2 0-2 3-4 3 0 2 1 4 2 4z"/><path d="M9 15L20 4a2 2 0 013 3L12 18"/></svg>Brush</button>
+          <button type="button" class="tl" data-tool="box" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="1.5" stroke-dasharray="3 3"/></svg>Box</button>
+          <button type="button" class="tl" data-tool="erase" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H9L4 15a2 2 0 010-3l8-8a2 2 0 013 0l5 5a2 2 0 010 3l-8 8"/></svg>Rub out</button>
+        </div>
+        <div class="row"><label for="size">Size</label><input class="sl" type="range" id="size" min="1" max="100" value="30"><output id="sizeO">30</output></div>
+        <div class="pair"><button type="button" class="btn sm" id="undoMark" disabled>Undo mark</button><button type="button" class="btn sm" id="clearMark" disabled>Clear marks</button></div>
+        <p class="hint" style="margin-top:12px"><b>Tip:</b> cover the whole mark, including its soft edge. For text, one wide stroke over the word works better than tracing letters.</p>
+      </div>
+      <div class="box acts">
+        <button type="button" class="btn pri" id="go" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Remove marked area</button>
+        <div class="pair" style="margin:0"><button type="button" class="btn sm" id="undo" disabled>Undo removal</button><button type="button" class="btn sm" id="compare" disabled>Hold to compare</button></div>
+        <button type="button" class="btn pri" id="dl" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>Download</button>
+        <div class="fmt2"><label for="fmt">Save as</label><select id="fmt"><option value="png">PNG (lossless)</option><option value="jpg">JPG (smaller)</option></select></div>
+        <button type="button" class="btn sm" id="again">Use a different photo</button>
+        <p class="msg2" id="msg2" role="status"></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="legal">
+  <div class="legal-grid">
+    <section><h2>Privacy</h2><p>Photos are processed in your browser. They are not uploaded to or stored by this site. The page sets no cookies, runs no ads and has no visitor tracking. The AI engine and model are saved in your browser cache so the page starts faster next time. The server that hosts the page may keep standard access logs, such as your IP address.</p></section>
+    <section><h2>Terms of use</h2><p>Use Unmark only on images you own, or that you have the right to edit. Do not use it to remove a copyright notice, credit or watermark from someone else&rsquo;s work in order to use that work without permission. Results are made automatically, can be imperfect, and are provided as is, without warranty of any kind. The AI invents plausible content to fill the gap, so do not rely on edited images as evidence, identification or records. Check each result before you use it.</p></section>
+    <section><h2>Credits</h2><p>Filling uses the LaMa inpainting model (&ldquo;big-lama&rdquo;, Apache-2.0) by Roman Suvorov, Samsung AI Center Moscow and colleagues, converted to ONNX for this site, and ONNX Runtime Web (MIT). Typefaces are Fraunces, Instrument Sans and JetBrains Mono (SIL Open Font License). The example photo is a stock-style image from this site with a made-up watermark added. Unmark is an independent project and is not affiliated with or endorsed by any other watermark-removal service.</p></section>
+  </div>
+  <div class="legal-base">
+    <div class="legal-text">
+      <p class="credit">AI did the heavy lifting. <a href="https://www.instagram.com/ashish.narayann/" target="_blank" rel="noopener noreferrer">Ashish Narayan</a> turned the lights on.</p>
+      <p>&copy; 2026 <a href="../">tinywebapps.in</a>. All rights reserved in the original design, text and code of this site. Third-party software, the inpainting model and the typefaces remain the property of their respective authors and are used under their own licences, reproduced below under &ldquo;Open-source licences&rdquo;. Photos you process remain yours, and no claim is made over them. No part of this site may be copied or redistributed without permission, except as those licences allow.</p>
+      <div class="tiger" style="margin-top:4px"><a href="https://savethetiger.site/" target="_blank" rel="noopener" aria-label="I protect tigers — Save the Tigers" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:999px;background:#0B130E;border:1px solid #1F3A2A;color:#EAF2EC;font-size:12px;font-weight:700;letter-spacing:.08em;line-height:1;text-decoration:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"><svg width="18" height="18" viewBox="0 0 64 64" aria-hidden="true" style="display:block;flex:none"><g fill="#FF9A1F"><ellipse cx="13" cy="27" rx="5.2" ry="7.2" transform="rotate(-24 13 27)"/><ellipse cx="25" cy="16" rx="5.4" ry="7.8" transform="rotate(-9 25 16)"/><ellipse cx="39" cy="16" rx="5.4" ry="7.8" transform="rotate(9 39 16)"/><ellipse cx="51" cy="27" rx="5.2" ry="7.2" transform="rotate(24 51 27)"/><path d="M32 29 C41 29 49 37 49 46 C49 53 43.5 56.5 38 54.5 C34.5 53.3 29.5 53.3 26 54.5 C20.5 56.5 15 53 15 46 C15 37 23 29 32 29 Z"/></g><path d="M17 41 Q24 43 28 50 M47 41 Q40 43 36 50" stroke="#0B130E" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg><span>I PROTECT TIGERS</span></a></div>
+    </div>
+    <span class="share" role="group" aria-label="Share Unmark"><span class="lbl">Share</span>
+    <a class="sb" id="shWa" href="https://wa.me/" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" title="Share on WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.78h-.01a9.9 9.9 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.88-9.88 9.88M20.52 3.45A11.8 11.8 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.4z"/></svg></a>
+    <a class="sb" id="shX" href="https://x.com/intent/post" target="_blank" rel="noopener noreferrer" aria-label="Share on X (Twitter)" title="Share on X (Twitter)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zM17.61 20.65h2.04L6.49 3.24H4.3z"/></svg></a>
+    <button class="sb" id="shIg" type="button" aria-label="Share on Instagram" title="Share on Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></button>
+    <span class="snote" id="shNote" role="status" aria-live="polite"></span>
+  </span>
+  </div>
+  
+<details class="licenses"><summary>Open-source licences</summary><div class="licenses-body">
+<div><h3>LaMa (big-lama model): Apache License 2.0</h3><p class="src">https://github.com/advimman/lama</p><pre>Copyright (c) 2021 Samsung Research / Roman Suvorov and contributors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+Changes: the network was converted to ONNX with its Fourier layers rewritten as matrix products, and its weights were stored in half precision.</pre></div>
+<div><h3>ONNX Runtime Web: MIT License</h3><p class="src">https://github.com/microsoft/onnxruntime</p><pre>MIT License
+
+Copyright (c) Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+<div><h3>Fraunces: SIL Open Font License 1.1</h3><p class="src">https://github.com/undercasetype/Fraunces</p><pre>Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces) Fraunces-Italic[SOFT,WONK,opsz,wght].ttf: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>Instrument Sans: SIL Open Font License 1.1</h3><p class="src">https://github.com/Instrument/instrument-sans</p><pre>Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans) InstrumentSans-Italic[wdth,wght].ttf: Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+<div><h3>JetBrains Mono: SIL Open Font License 1.1</h3><p class="src">https://github.com/JetBrains/JetBrainsMono</p><pre>Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono) JetBrainsMono-Italic[wght].ttf: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+&quot;Font Software&quot; refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+&quot;Reserved Font Name&quot; refers to any names specified as such after the
+copyright statement(s).
+
+&quot;Original Version&quot; refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+&quot;Modified Version&quot; refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+&quot;Author&quot; refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
+  </div></details>
+</footer>
+<script>
+(() => {
+  'use strict';
+  const MF = {"total": 109186686, "parts": [["model/l01-8e31890db705.dat", 27296672], ["model/l02-363b90cf47bd.dat", 27296672], ["model/l03-b8824e94f76e.dat", 27296672], ["model/l04-56d948d9317a.dat", 27296670]], "sha": "40035647b5f37b29526613eaaeef658e608dbcc363504c092a0e42adce3e834d", "v": 1};
+  const $ = (s) => document.querySelector(s);
+  const SZ = 512, MAXSIDE = 4096;
+  const modelEl = $('#model'), modelText = $('#modelText');
+  const setModel = (s, t) => { modelEl.dataset.state = s; modelText.textContent = t; };
+  const say = (t) => { $('#msg').textContent = t || ''; $('#msg2').textContent = t || ''; };
+
+  /* ---------- state ---------- */
+  const imgC = $('#img'), imgX = imgC.getContext('2d', { willReadFrequently: true });
+  const maskC = $('#mask'), maskX = maskC.getContext('2d', { willReadFrequently: true });
+  const origC = $('#orig');
+  let W = 0, H = 0, name = 'photo', busy = false, cancelFlag = false;
+  let tool = 'brush', drawing = false, last = null, boxStart = null, boxNow = null;
+  const markHist = [];        // snapshots of the mask before each stroke
+  const imgHist = [];         // snapshots of the image before each removal (max 6)
+  let hasMask = false;
+
+  /* ---------- engine (worker) ---------- */
+  let worker = null, engineState = 'idle', enginePromise = null, reqId = 0; const pend = new Map();
+  function startEngine() {
+    if (enginePromise && engineState !== 'error') return enginePromise;
+    engineState = 'loading'; setModel('loading', 'Loading AI model 0%'); $('#modelRetry').hidden = true;
+    enginePromise = new Promise((res, rej) => {
+      try { worker = new Worker('worker.js?v=' + MF.v); } catch (e) { engineState = 'error'; setModel('error', 'AI engine could not start'); $('#modelRetry').hidden = false; return rej(e); }
+      worker.onmessage = (ev) => {
+        const m = ev.data;
+        if (m.type === 'progress') setModel('loading', 'Loading AI model ' + Math.round(m.frac * 100) + '%');
+        else if (m.type === 'stage') setModel('loading', m.text);
+        else if (m.type === 'ready') { engineState = 'ready'; setModel('ready', 'AI engine ready'); res(); }
+        else if (m.type === 'result') { const p = pend.get(m.id); if (p) { pend.delete(m.id); p.res(m.out); } }
+        else if (m.type === 'fail') {
+          const p = m.id && pend.get(m.id);
+          if (p) { pend.delete(m.id); p.rej(new Error(m.error)); }
+          else { engineState = 'error'; setModel('error', 'AI engine failed'); $('#modelRetry').hidden = false; $('#modelRetry').title = m.error; rej(new Error(m.error)); }
+        }
+      };
+      worker.onerror = (e) => { engineState = 'error'; setModel('error', 'AI engine failed'); $('#modelRetry').hidden = false; rej(new Error(e.message || 'worker error')); };
+      worker.postMessage({ type: 'init', parts: MF.parts, v: MF.v, total: MF.total });
+    });
+    enginePromise.catch(() => {});
+    return enginePromise;
+  }
+  $('#modelRetry').addEventListener('click', () => { if (worker) worker.terminate(); worker = null; engineState = 'idle'; enginePromise = null; startEngine().catch(() => {}); });
+  function infer(rgb, mask) {
+    return new Promise((res, rej) => { const id = ++reqId; pend.set(id, { res, rej }); worker.postMessage({ type: 'run', id, rgb, mask }, [rgb.buffer, mask.buffer]); });
+  }
+
+  /* ---------- loading an image ---------- */
+  async function handleBlob(blob, nm) {
+    say('');
+    if (!blob || !/^image\//.test(blob.type || '')) { say('That does not look like an image. Please use a JPG, PNG or WEBP.'); return; }
+    let bmp;
+    try { bmp = await createImageBitmap(blob); } catch (e) { say('This image could not be opened. Try a JPG or PNG.'); return; }
+    let w = bmp.width, h = bmp.height, k = 1;
+    if (Math.max(w, h) > MAXSIDE) { k = MAXSIDE / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+    W = w; H = h; name = (nm || 'photo').replace(/\.[^.]+$/, '') || 'photo';
+    imgC.width = W; imgC.height = H; maskC.width = W; maskC.height = H; origC.width = W; origC.height = H;
+    imgX.drawImage(bmp, 0, 0, W, H); origC.getContext('2d').drawImage(bmp, 0, 0, W, H);
+    try { bmp.close(); } catch (e) {}
+    markHist.length = 0; imgHist.length = 0; hasMask = false; maskX.clearRect(0, 0, W, H);
+    $('#start').hidden = true; $('#app').hidden = false; $('#tag').hidden = true;
+    refresh();
+    if (k < 1) $('#msg2').textContent = 'Large photo reduced to ' + W + ' × ' + H + ' px.';
+    startEngine().catch(() => {});
+    scrollTo({ top: 0 });
+  }
+  const fileIn = $('#file');
+  fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; if (f) handleBlob(f, f.name); fileIn.value = ''; });
+  const drop = $('#drop');
+  ['dragenter', 'dragover'].forEach((t) => document.addEventListener(t, (e) => { if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) { e.preventDefault(); drop.classList.add('over'); } }));
+  ['dragleave', 'drop'].forEach((t) => document.addEventListener(t, () => drop.classList.remove('over')));
+  document.addEventListener('drop', (e) => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) { e.preventDefault(); handleBlob(f, f.name); } });
+  document.addEventListener('paste', (e) => { const it = Array.from((e.clipboardData && e.clipboardData.items) || []).find((x) => /^image\//.test(x.type)); if (it) { const f = it.getAsFile(); if (f) handleBlob(f, 'pasted'); } });
+  $('#sample').addEventListener('click', async () => { try { const r = await fetch('sample.jpg'); handleBlob(await r.blob(), 'sample.jpg'); } catch (e) { say('Could not load the example.'); } });
+  $('#again').addEventListener('click', () => { if (busy) return; $('#app').hidden = true; $('#start').hidden = false; say(''); });
+
+  /* ---------- painting the mask ---------- */
+  const cv = $('#cv'), ring = $('#ring');
+  const brushPx = () => Math.max(3, Math.round(Math.min(W, H) * (+$('#size').value) / 300));
+  function pos(e) { const r = imgC.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height, cx: e.clientX - r.left, cy: e.clientY - r.top, k: r.width / W }; }
+  function showRing(p) {
+    if (tool === 'box') { ring.style.display = 'none'; return; }
+    const d = brushPx() * p.k; ring.style.display = 'block'; ring.style.width = ring.style.height = d + 'px';
+    const cr = cv.getBoundingClientRect(), ir = imgC.getBoundingClientRect();
+    ring.style.left = (p.cx + ir.left - cr.left) + 'px'; ring.style.top = (p.cy + ir.top - cr.top) + 'px';
+  }
+  function paint(a, b) {
+    maskX.save();
+    if (tool === 'erase') maskX.globalCompositeOperation = 'destination-out';
+    maskX.strokeStyle = maskX.fillStyle = '#ff3b6b'; maskX.lineCap = maskX.lineJoin = 'round'; maskX.lineWidth = brushPx();
+    maskX.beginPath(); maskX.moveTo(a.x, a.y); maskX.lineTo(b.x, b.y); maskX.stroke();
+    maskX.beginPath(); maskX.arc(b.x, b.y, brushPx() / 2, 0, 6.2832); maskX.fill();
+    maskX.restore();
+  }
+  function snapMask() { markHist.push(maskX.getImageData(0, 0, W, H)); if (markHist.length > 20) markHist.shift(); }
+  function boxPreview() {
+    // live box shown on the mask canvas on top of the snapshot
+    const s = markHist[markHist.length - 1]; maskX.putImageData(s, 0, 0);
+    const x = Math.min(boxStart.x, boxNow.x), y = Math.min(boxStart.y, boxNow.y), w = Math.abs(boxStart.x - boxNow.x), h = Math.abs(boxStart.y - boxNow.y);
+    maskX.fillStyle = '#ff3b6b'; maskX.fillRect(x, y, w, h);
+  }
+  cv.addEventListener('pointerdown', (e) => {
+    if (busy || e.button > 0) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
+    const p = pos(e); drawing = true; snapMask();
+    if (tool === 'box') { boxStart = boxNow = p; } else { last = p; paint(p, p); }
+    showRing(p);
+  });
+  cv.addEventListener('pointermove', (e) => {
+    const p = pos(e); showRing(p);
+    if (!drawing) return;
+    e.preventDefault();
+    if (tool === 'box') { boxNow = p; boxPreview(); } else { paint(last, p); last = p; }
+  });
+  const endStroke = () => { if (!drawing) return; drawing = false; boxStart = boxNow = null; checkMask(); };
+  cv.addEventListener('pointerup', endStroke); cv.addEventListener('pointercancel', endStroke);
+  cv.addEventListener('pointerleave', () => { if (!drawing) ring.style.display = 'none'; });
+  function checkMask() {
+    const d = maskX.getImageData(0, 0, W, H).data; let any = false;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 40) { any = true; break; }
+    hasMask = any; refresh();
+  }
+  document.querySelectorAll('.tl').forEach((b) => b.addEventListener('click', () => { tool = b.dataset.tool; document.querySelectorAll('.tl').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
+  $('#size').addEventListener('input', () => { $('#sizeO').textContent = $('#size').value; });
+  $('#undoMark').addEventListener('click', () => { if (busy || !markHist.length) return; maskX.putImageData(markHist.pop(), 0, 0); checkMask(); });
+  $('#clearMark').addEventListener('click', () => { if (busy) return; snapMask(); maskX.clearRect(0, 0, W, H); checkMask(); });
+  function refresh() {
+    $('#go').disabled = busy || !hasMask; $('#undoMark').disabled = busy || !markHist.length; $('#clearMark').disabled = busy || !hasMask;
+    $('#undo').disabled = busy || !imgHist.length; $('#compare').disabled = busy || !imgHist.length; $('#dl').disabled = busy || !imgHist.length;
+  }
+  addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !$('#app').hidden) { e.preventDefault(); if (markHist.length) $('#undoMark').click(); else $('#undo').click(); } });
+
+  /* compare */
+  const cmpBtn = $('#compare');
+  const showOrig = (on) => { origC.hidden = !on; $('#tag').hidden = !on; $('#mask').style.visibility = on ? 'hidden' : ''; };
+  ['pointerdown'].forEach((t) => cmpBtn.addEventListener(t, (e) => { e.preventDefault(); if (cmpBtn.disabled) return; showOrig(true); }));
+  ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach((t) => cmpBtn.addEventListener(t, () => showOrig(false)));
+  cmpBtn.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); showOrig(true); } });
+  cmpBtn.addEventListener('keyup', () => showOrig(false));
+
+  /* ---------- removing ---------- */
+  const dilate = (m, w, h, r) => {            // separable max filter on a 0/1 byte map
+    const t = new Uint8Array(w * h), o = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) { const row = y * w; let run = 0;
+      for (let x = 0; x < w; x++) { if (m[row + x]) run = r + 1; else if (run) run--; if (run) t[row + x] = 1; }
+      run = 0; for (let x = w - 1; x >= 0; x--) { if (m[row + x]) run = r + 1; else if (run) run--; if (run) t[row + x] = 1; } }
+    for (let x = 0; x < w; x++) { let run = 0;
+      for (let y = 0; y < h; y++) { const i = y * w + x; if (t[i]) run = r + 1; else if (run) run--; if (run) o[i] = 1; }
+      run = 0; for (let y = h - 1; y >= 0; y--) { const i = y * w + x; if (t[i]) run = r + 1; else if (run) run--; if (run) o[i] = 1; } }
+    return o;
+  };
+  const boxBlur = (a, w, h, r) => {           // float map, r px, two passes
+    const n = w * h, t = new Float32Array(n), o = new Float32Array(n), d = 2 * r + 1;
+    for (let y = 0; y < h; y++) { let s = 0; const row = y * w;
+      for (let x = -r; x <= r; x++) s += a[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) { t[row + x] = s / d; s += a[row + Math.min(w - 1, x + r + 1)] - a[row + Math.max(0, x - r)]; } }
+    for (let x = 0; x < w; x++) { let s = 0;
+      for (let y = -r; y <= r; y++) s += t[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) { o[y * w + x] = s / d; s += t[Math.min(h - 1, y + r + 1) * w + x] - t[Math.max(0, y - r) * w + x]; } }
+    return o;
+  };
+  const tmp = document.createElement('canvas'), tmpX = tmp.getContext('2d', { willReadFrequently: true });
+
+  function setBusy(on, title) {
+    busy = on; $('#busy').hidden = !on; if (title) $('#busyT').textContent = title; refresh();
+    cv.style.cursor = on ? 'default' : '';
+  }
+
+  async function removeMarked() {
+    if (busy || !hasMask) return;
+    say(''); cancelFlag = false; setBusy(true, 'Getting ready'); $('#busyBar').style.width = '2%'; $('#busyEta').textContent = '';
+    try {
+      if (engineState !== 'ready') { $('#busyEta').textContent = 'Downloading the AI model once. Later runs are instant to start.'; await startEngine(); }
+      const md = maskX.getImageData(0, 0, W, H).data, raw = new Uint8Array(W * H);
+      for (let i = 0; i < raw.length; i++) raw[i] = md[i * 4 + 3] > 40 ? 1 : 0;
+      const r = Math.max(2, Math.min(12, Math.round(Math.min(W, H) * 0.005)));
+      const pending = dilate(raw, W, H, r);
+      let bx0 = W, by0 = H, bx1 = -1, by1 = -1;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (pending[y * W + x]) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; }
+      if (bx1 < 0) { setBusy(false); return; }
+      const Smax = Math.min(W, H), cell = Math.max(64, Math.min(Math.round(Smax * 0.6), 560));
+      const cells = [];
+      for (let cy = by0; cy <= by1; cy += cell) for (let cx = bx0; cx <= bx1; cx += cell) cells.push([cx, cy]);
+      // snapshot for undo
+      imgHist.push(imgX.getImageData(0, 0, W, H)); if (imgHist.length > 6) imgHist.shift();
+      let done = 0, total = 0, t0 = performance.now();
+      const jobs = cells.filter(([cx, cy]) => { for (let y = cy; y < Math.min(H, cy + cell); y++) for (let x = cx; x < Math.min(W, cx + cell); x++) if (pending[y * W + x]) return true; return false; });
+      total = jobs.length;
+      setBusy(true, total > 1 ? 'Filling area 1 of ' + total : 'Filling the marked area');
+      for (const [cx, cy] of jobs) {
+        if (cancelFlag) break;
+        // pending pixels in this cell
+        let x0 = W, y0 = H, x1 = -1, y1 = -1;
+        for (let y = cy; y < Math.min(H, cy + cell); y++) for (let x = cx; x < Math.min(W, cx + cell); x++) if (pending[y * W + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        if (x1 < 0) { done++; continue; }
+        const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+        let side = Math.round(Math.max(bw, bh) * 2.4); side = Math.max(Math.min(SZ, Smax), Math.min(side, Smax));
+        const wx = Math.max(0, Math.min(W - side, Math.round((x0 + x1) / 2 - side / 2))), wy = Math.max(0, Math.min(H - side, Math.round((y0 + y1) / 2 - side / 2)));
+        // window pixels -> 512 x 512
+        tmp.width = side; tmp.height = side; tmpX.putImageData(imgX.getImageData(wx, wy, side, side), 0, 0);
+        const sc = document.createElement('canvas'); sc.width = sc.height = SZ; const scx = sc.getContext('2d', { willReadFrequently: true });
+        scx.imageSmoothingQuality = 'high'; scx.drawImage(tmp, 0, 0, SZ, SZ);
+        const sp = scx.getImageData(0, 0, SZ, SZ).data, rgb = new Float32Array(3 * SZ * SZ), pl = SZ * SZ;
+        for (let i = 0; i < pl; i++) { rgb[i] = sp[i * 4] / 255; rgb[pl + i] = sp[i * 4 + 1] / 255; rgb[2 * pl + i] = sp[i * 4 + 2] / 255; }
+        // mask window -> 512
+        const wm = new Uint8ClampedArray(side * side * 4);
+        for (let y = 0; y < side; y++) for (let x = 0; x < side; x++) if (pending[(wy + y) * W + wx + x]) wm[(y * side + x) * 4 + 3] = 255;
+        tmp.width = side; tmp.height = side; tmpX.putImageData(new ImageData(wm, side, side), 0, 0);
+        scx.clearRect(0, 0, SZ, SZ); scx.drawImage(tmp, 0, 0, SZ, SZ);
+        const mp = scx.getImageData(0, 0, SZ, SZ).data, mk = new Float32Array(pl);
+        for (let i = 0; i < pl; i++) mk[i] = mp[i * 4 + 3] > 20 ? 1 : 0;
+        const out = await infer(rgb, mk);
+        // back to the window size
+        const od = new Uint8ClampedArray(pl * 4);
+        for (let i = 0; i < pl; i++) { od[i * 4] = out[i] * 255 + .5; od[i * 4 + 1] = out[pl + i] * 255 + .5; od[i * 4 + 2] = out[2 * pl + i] * 255 + .5; od[i * 4 + 3] = 255; }
+        scx.putImageData(new ImageData(od, SZ, SZ), 0, 0);
+        tmp.width = side; tmp.height = side; tmpX.imageSmoothingQuality = 'high'; tmpX.drawImage(sc, 0, 0, side, side);
+        const res = tmpX.getImageData(0, 0, side, side).data;
+        const base = imgX.getImageData(wx, wy, side, side), bd = base.data;
+        const am = new Float32Array(side * side); for (let i = 0; i < am.length; i++) am[i] = wm[i * 4 + 3] ? 1 : 0;
+        const soft = boxBlur(am, side, side, 1);
+        for (let i = 0; i < am.length; i++) {
+          const a = am[i] ? 1 : Math.min(1, soft[i] * 2); if (!a) continue;
+          const p = i * 4; bd[p] = bd[p] * (1 - a) + res[p] * a; bd[p + 1] = bd[p + 1] * (1 - a) + res[p + 1] * a; bd[p + 2] = bd[p + 2] * (1 - a) + res[p + 2] * a;
+        }
+        imgX.putImageData(base, wx, wy);
+        for (let y = 0; y < side; y++) for (let x = 0; x < side; x++) pending[(wy + y) * W + wx + x] = 0;
+        done++;
+        const el = (performance.now() - t0) / 1000, eta = done < total ? Math.round(el / done * (total - done)) : 0;
+        $('#busyBar').style.width = Math.max(4, Math.round(done / total * 100)) + '%';
+        $('#busyT').textContent = done < total ? 'Filling area ' + (done + 1) + ' of ' + total : 'Finishing';
+        $('#busyEta').textContent = done < total ? 'About ' + eta + ' s left' : '';
+        await new Promise((r2) => setTimeout(r2, 0));
+      }
+      maskX.clearRect(0, 0, W, H); markHist.length = 0; hasMask = false;
+      if (cancelFlag && done < total) $('#msg2').textContent = 'Stopped. Part of the marked area was filled.';
+    } catch (e) {
+      if (imgHist.length) { imgX.putImageData(imgHist.pop(), 0, 0); }
+      $('#msg2').textContent = 'Something went wrong' + (e && e.message ? ': ' + e.message : '.') + ' Try a smaller marked area, or reload the page.';
+      if (engineState === 'error') $('#modelRetry').hidden = false;
+    }
+    setBusy(false);
+  }
+  $('#go').addEventListener('click', removeMarked);
+  $('#cancel').addEventListener('click', () => { cancelFlag = true; $('#busyEta').textContent = 'Stopping after this step…'; });
+  $('#undo').addEventListener('click', () => { if (busy || !imgHist.length) return; imgX.putImageData(imgHist.pop(), 0, 0); refresh(); });
+
+  /* ---------- download ---------- */
+  $('#dl').addEventListener('click', () => {
+    const jpg = $('#fmt').value === 'jpg';
+    let src = imgC;
+    if (jpg) { const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); x.drawImage(imgC, 0, 0); src = c; }
+    src.toBlob((b) => {
+      if (!b) { $('#msg2').textContent = 'Could not create the file.'; return; }
+      const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = name + '-unmark.' + (jpg ? 'jpg' : 'png');
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+    }, jpg ? 'image/jpeg' : 'image/png', 0.95);
+  });
+
+  /* ---------- share ---------- */
+  (function () {
+    const SITE = 'https://tinywebapps.in/unmark/', web = /^https?:$/.test(location.protocol), url = web ? location.origin + location.pathname : SITE;
+    const text = 'Unmark: paint over a watermark or object and AI removes it on your device. Free, no sign-up.';
+    $('#shWa').href = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url);
+    $('#shX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
+    const note = $('#shNote'); let t; const flash = (m) => { note.textContent = m; clearTimeout(t); t = setTimeout(() => { note.textContent = ''; }, 4500); };
+    $('#shIg').addEventListener('click', async () => {
+      if (navigator.share) { try { await navigator.share({ title: 'Unmark', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      try { await navigator.clipboard.writeText(url); flash('Link copied. Paste it on Instagram.'); } catch (e) { flash('Copy this link: ' + url); }
+    });
+  })();
+  window.__unmark = { get engine() { return engineState; } };
+})();
+</script>
+<script>if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>

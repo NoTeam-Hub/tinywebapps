@@ -51,3 +51,13 @@
   Cache-Control: no-cache
 /tailorly/brand/*
   Cache-Control: public, max-age=86400
+/unmark/
+  Cache-Control: no-cache
+/unmark/index.html
+  Cache-Control: no-cache
+/unmark/model/*
+  Cache-Control: public, max-age=31536000, immutable
+/unmark/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+/unmark/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

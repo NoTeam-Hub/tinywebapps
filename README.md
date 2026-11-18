@@ -14,6 +14,7 @@ Tiny Web Apps is one small website that hosts six tools, plus a hub page that li
 | **Stillreel** | [/stillreel/](https://tinywebapps.in/stillreel/) | Builds a video from photos and words: text scenes, a 3D depth effect on photos, music, and export to MP4 or WebM. |
 | **The Tailorly** | [/tailorly/](https://tinywebapps.in/tailorly/) | Tailors a resume to a job post. Shows a match score, the missing keywords and stronger bullet points beside your text. |
 | **Polish** | [/enhance/](https://tinywebapps.in/enhance/) | Drop a photo and it is enhanced automatically: light, colour, noise and detail are fixed with no prompts. Then pick one of 12 filters, compare before and after, and download as JPG or PNG. |
+| **Unmark** | [/unmark/](https://tinywebapps.in/unmark/) | Brush or box over a watermark, logo, date stamp or object and it is filled in by the LaMa inpainting model (ONNX Runtime Web, 512 px windows around the marked area, half-precision weights in six parts). Runs on your device; PNG or JPG out. |
 
 ## How each tool works
 
@@ -51,6 +52,7 @@ verbatim/       Verbatim
 stillreel/      Stillreel
 tailorly/       The Tailorly
 enhance/        Polish
+unmark/         Unmark
 docsmith/       Docsmith
 upright/        Upright
 CNAME           the custom domain (tinywebapps.in)
