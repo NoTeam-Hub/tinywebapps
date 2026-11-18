@@ -199,14 +199,14 @@ footer.legal{padding:26px clamp(16px,4vw,44px) 30px;max-width:1240px;width:100%;
         <div class="tools" role="group" aria-label="Tool">
           <button type="button" class="tl" data-tool="brush" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 5-1 5-4a3 3 0 00-3-3c-2 0-2 3-4 3 0 2 1 4 2 4z"/><path d="M9 15L20 4a2 2 0 013 3L12 18"/></svg>Brush</button>
           <button type="button" class="tl" data-tool="box" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="1.5" stroke-dasharray="3 3"/></svg>Box</button>
-          <button type="button" class="tl" data-tool="erase" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H9L4 15a2 2 0 010-3l8-8a2 2 0 013 0l5 5a2 2 0 010 3l-8 8"/></svg>Rub out</button>
+          <button type="button" class="tl" data-tool="erase" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20H9L4 15a2 2 0 010-3l8-8a2 2 0 013 0l5 5a2 2 0 010 3l-8 8"/></svg>Erase marks</button>
         </div>
         <div class="row"><label for="size">Size</label><input class="sl" type="range" id="size" min="1" max="100" value="30"><output id="sizeO">30</output></div>
         <div class="row"><label for="edge">Cover edges</label><input class="sl" type="range" id="edge" min="0" max="20" value="6"><output id="edgeO">6</output></div>
         <button type="button" class="btn sm" id="findText" style="width:100%;margin-top:14px" disabled>Find text automatically</button>
         <label class="snap"><input type="checkbox" id="snap" checked> Snap my brush to detected text</label>
         <div class="pair"><button type="button" class="btn sm" id="undoMark" disabled>Undo mark</button><button type="button" class="btn sm" id="clearMark" disabled>Clear marks</button></div>
-        <p class="hint" style="margin-top:12px"><b>Tip:</b> Rub out: tap a pink text piece to drop it, or drag to rub part away. For words, press <b>Find text</b> or brush across them. For logos, paint over the whole logo. Raise <b>Cover edges</b> if a faint outline is left.</p>
+        <p class="hint" style="margin-top:12px"><b>Tip:</b> use <b>Brush</b> to mark what to remove; <b>Erase marks</b> only takes pink marks away (tap a pink text piece to drop it). For words, press <b>Find text</b> or brush across them. For logos, paint over the whole logo. Raise <b>Cover edges</b> if a faint outline is left.</p>
       </div>
       <div class="box acts">
         <button type="button" class="btn pri" id="go" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Remove marked area</button>
@@ -708,7 +708,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
       const comps = await (detProm || startDetect());
       if (comps === null) $('#msg2').textContent = 'Automatic text finding is not available right now. You can still paint over the mark.';
       else if (!comps.length) $('#msg2').textContent = 'No text found. If the mark is a logo, paint over it.';
-      else { snapMask(); comps.forEach((c) => { c.off = false; paintComp(c); }); checkMask(); $('#msg2').textContent = 'Marked ' + comps.length + ' piece' + (comps.length > 1 ? 's' : '') + ' of text. Rub out anything you want to keep, then press Remove.'; }
+      else { snapMask(); comps.forEach((c) => { c.off = false; paintComp(c); }); checkMask(); $('#msg2').textContent = 'Marked ' + comps.length + ' piece' + (comps.length > 1 ? 's' : '') + ' of text. Use Erase marks on anything you want to keep, then press Remove.'; }
     } catch (e) { $('#msg2').textContent = 'Automatic text finding failed. You can still paint over the mark.'; }
     b.textContent = 'Find text automatically'; refresh();
   });
@@ -765,6 +765,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
   }
   cv.addEventListener('pointerdown', (e) => {
     if (busy || e.button > 0) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
+    if (tool === 'erase' && !hasMask) { selectTool('brush'); $('#msg2').textContent = 'Erase marks only takes pink marks away, so I switched to Brush. Paint over what you want removed.'; }
     const p = pos(e); drawing = true; snapMask();
     if (tool === 'box') { boxStart = boxNow = p; }
     else {
@@ -796,14 +797,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.</pre></div>
     for (let i = 3; i < d.length; i += 4) if (d[i] > 40) { any = true; break; }
     hasMask = any; refresh();
   }
-  document.querySelectorAll('.tl').forEach((b) => b.addEventListener('click', () => { tool = b.dataset.tool; cv.style.cursor = tool === 'box' ? 'crosshair' : ''; ring.style.display = 'none'; document.querySelectorAll('.tl').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
+  function selectTool(t) { tool = t; cv.style.cursor = tool === 'box' ? 'crosshair' : ''; ring.style.display = 'none'; document.querySelectorAll('.tl').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.tool === t))); }
+  document.querySelectorAll('.tl').forEach((b) => b.addEventListener('click', () => selectTool(b.dataset.tool)));
   $('#size').addEventListener('input', () => { $('#sizeO').textContent = $('#size').value; });
   $('#edge').addEventListener('input', () => { $('#edgeO').textContent = $('#edge').value; });
   $('#undoMark').addEventListener('click', () => { if (busy || !markHist.length) return; maskX.putImageData(markHist.pop(), 0, 0); checkMask(); });
   $('#clearMark').addEventListener('click', () => { if (busy) return; snapMask(); maskX.clearRect(0, 0, W, H); checkMask(); });
   function refresh() {
     $('#go').disabled = busy || !hasMask; $('#findText').disabled = busy || textComps === null; $('#undoMark').disabled = busy || !markHist.length; $('#clearMark').disabled = busy || !hasMask;
-    $('#undo').disabled = busy || !imgHist.length; $('#compare').disabled = busy || !imgHist.length; $('#dl').disabled = busy || !imgHist.length;
+    $('#undo').disabled = busy || !imgHist.length; $('#compare').disabled = busy || !imgHist.length; $('#dl').disabled = busy;
   }
   addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !$('#app').hidden) { e.preventDefault(); if (markHist.length) $('#undoMark').click(); else $('#undo').click(); } });
 
